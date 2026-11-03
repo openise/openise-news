@@ -173,14 +173,34 @@ def build_prompt(candidates: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[object, dict]:
-    """Workers AI を呼び、モデルの出力と usage を返す。"""
+def describe_finish(result: dict) -> str:
+    """失敗の切り分け用に、 finish_reason と思考の欄の有無・長さを返す（思考の中身は含めない）。"""
+    choice = {}
+    if isinstance(result.get("choices"), list) and result["choices"] and isinstance(result["choices"][0], dict):
+        choice = result["choices"][0]
+    message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
+
+    reasoning = []
+    for key in ("reasoning_content", "reasoning"):
+        if message.get(key) is not None:
+            reasoning.append(f"{key} {len(str(message[key]))} 文字")
+    if isinstance(result.get("response"), str):
+        thinks = re.findall(r"<think>(.*?)</think>", result["response"], re.DOTALL)
+        if thinks:
+            reasoning.append(f"<think> {sum(len(t) for t in thinks)} 文字")
+    return f"finish_reason: {choice.get('finish_reason')} / 思考の欄: {'、'.join(reasoning) or 'なし'}"
+
+
+def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[object, dict, str]:
+    """Workers AI を呼び、モデルの出力・ usage ・失敗時の切り分け用の情報を返す。"""
     payload = {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
         "max_tokens": MAX_TOKENS,
+        # gemma-4 は既定で思考し、 max_tokens を思考だけで使い切って本文が空になることがあった（ #26 ）
+        "chat_template_kwargs": {"enable_thinking": False},
     }
     request = urllib.request.Request(
         API_URL.format(account_id=account_id, model=MODEL),
@@ -206,6 +226,7 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
         raise CurationError(f"Workers AI がエラーを返しました: {errors}")
 
     result = data["result"]
+    diagnostics = describe_finish(result)
     # モデルによって応答の形が異なる（ response 形式と OpenAI 互換の choices 形式）。
     # 思考の出力（ reasoning_content など）は使わずに捨て、本文だけを取り出す
     if "response" in result:
@@ -214,10 +235,10 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
         try:
             output = result["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as e:
-            raise CurationError("Workers AI の応答にモデルの出力がありません") from e
+            raise CurationError(f"Workers AI の応答にモデルの出力がありません（ {diagnostics} ）") from e
     if isinstance(output, str):
         output = _THINK_RE.sub("", output)
-    return output, result.get("usage") or {}
+    return output, result.get("usage") or {}, diagnostics
 
 
 def parse_picks(output: object, candidates: list[dict]) -> list[dict]:
@@ -327,13 +348,17 @@ def curate(date: datetime, base_dir: str, api_token: str, account_id: str) -> No
     print(f"[INFO] 候補 {len(candidates)} 件（過去 {HISTORY_DAYS} 日のピックアップ {len(history)} 件を除外対象）")
 
     if candidates:
-        output, usage = call_workers_ai(build_prompt(candidates), api_token, account_id)
+        output, usage, diagnostics = call_workers_ai(build_prompt(candidates), api_token, account_id)
         print(
             f"[INFO] Workers AI ({MODEL}) トークン数: "
             f"入力 {usage.get('prompt_tokens', '?')} / 出力 {usage.get('completion_tokens', '?')} / "
             f"合計 {usage.get('total_tokens', '?')}"
         )
-        picks = parse_picks(output, candidates)
+        try:
+            picks = parse_picks(output, candidates)
+        except CurationError:
+            print(f"[INFO] モデルの出力の状況: {diagnostics}", file=sys.stderr)
+            raise
         pickup = render_pickup(picks, candidates)
     else:
         pickup = f"{PICKUP_HEADING}\n\n選出できる候補がありませんでした。\n"
