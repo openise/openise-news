@@ -17,7 +17,7 @@ title: "[AI ニュース] 2026 年 11 月 03 日 (火)"
 createdDate: "20261103110001"
 ---
 
-## はてなブックマーク（AI 関連 Top 10）
+## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
 |---|---|---|
@@ -26,7 +26,7 @@ createdDate: "20261103110001"
 
 ---
 
-## Hacker News（AI 関連 Top 10）
+## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
 | 番号 | 種別 | タイトル | Points | Comments |
@@ -35,7 +35,7 @@ createdDate: "20261103110001"
 
 ---
 
-## Reddit（AI 関連 subreddit 別ピックアップ 10 件）
+## Reddit
 
 | 番号 | サブレディット | タイトル |
 |---|---|---|
@@ -43,7 +43,7 @@ createdDate: "20261103110001"
 
 ---
 
-## Zenn（AI 関連最新記事 Top 10）
+## Zenn
 
 | 番号 | タイトル |
 |---|---|
@@ -67,7 +67,7 @@ createdDate: "20261020110001"
 
    まとめ
 
-## はてなブックマーク（AI 関連 Top 10）
+## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
 |---|---|---|
@@ -153,7 +153,7 @@ def test_curate_inserts_pickup_after_frontmatter(news_dir, capsys):
         "4. **[Zenn 記事](https://zenn.dev/x/articles/1)**  \n"
         "*ソース: Zenn*\n\n"
         "   Zenn の記事です。\n\n"
-        "## はてなブックマーク（AI 関連 Top 10）\n"
+        "## はてなブックマーク\n"
     )
     # 元の表は残る
     assert "| 2 | [過去に選んだ記事](https://example.com/old) | 50 |" in text
@@ -163,7 +163,7 @@ def test_curate_inserts_pickup_after_frontmatter(news_dir, capsys):
 
 def test_curate_indents_summary_by_number_width(news_dir):
     rows = "\n".join(f"| {i} | [記事 {i}](https://zenn.dev/x/{i}) |" for i in range(1, 11))
-    news = NEWS.split("## はてなブックマーク")[0] + f"## Zenn（AI 関連最新記事 Top 10）\n\n| 番号 | タイトル |\n|---|---|\n{rows}\n"
+    news = NEWS.split("## はてなブックマーク")[0] + f"## Zenn\n\n| 番号 | タイトル |\n|---|---|\n{rows}\n"
     path = write_news(news_dir, "20261103", news)
     output = json.dumps([{"id": i, "summary": f"まとめ {i}"} for i in range(1, 11)], ensure_ascii=False)
 
@@ -273,7 +273,7 @@ def test_curate_excludes_recently_picked_urls_and_renumbers(news_dir):
 
 
 def test_curate_writes_message_without_calling_ai_when_no_candidates(tmp_path):
-    news = NEWS.split("## はてなブックマーク")[0] + "## Zenn（AI 関連最新記事 Top 10）\n\n| — | (取得できませんでした) |\n"
+    news = NEWS.split("## はてなブックマーク")[0] + "## Zenn\n\n| — | (取得できませんでした) |\n"
     path = write_news(tmp_path, "20261103", news)
 
     fake = run_curate(tmp_path, api_response("[]"))

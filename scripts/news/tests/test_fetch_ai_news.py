@@ -243,7 +243,7 @@ def test_github_trend_section_renders_repository_table():
         lines = fetch_ai_news.github_trend_section(10)
 
     assert lines == [
-        "## GitHub Trending（AI 関連 Top 10）",
+        "## GitHub Trending",
         "",
         "| 番号 | リポジトリ |",
         "|---|---|",
@@ -258,7 +258,7 @@ def test_qiita_section_renders_title_table():
         lines = fetch_ai_news.qiita_section(10)
 
     assert lines == [
-        "## Qiita（AI 関連人気記事 Top 10）",
+        "## Qiita",
         "",
         "| 番号 | タイトル |",
         "|---|---|",
@@ -273,7 +273,7 @@ def test_zenn_section_renders_title_table():
         lines = fetch_ai_news.zenn_section(10)
 
     assert lines == [
-        "## Zenn（AI 関連最新記事 Top 10）",
+        "## Zenn",
         "",
         "| 番号 | タイトル |",
         "|---|---|",
@@ -320,19 +320,19 @@ def _build_markdown_with_empty_sources(limit: int) -> str:
         )
 
 
-def test_sections_keep_top_10_heading_for_default_limit():
+def test_sections_use_service_name_as_heading():
     markdown = _build_markdown_with_empty_sources(10)
 
     assert "description:" not in markdown
-    for heading in [
-        "## はてなブックマーク（AI 関連 Top 10）",
-        "## Hacker News（AI 関連 Top 10）",
-        "## Reddit（AI 関連 subreddit 別ピックアップ 10 件）",
-        "## GitHub Trending（AI 関連 Top 10）",
-        "## Qiita（AI 関連人気記事 Top 10）",
-        "## Zenn（AI 関連最新記事 Top 10）",
-    ]:
-        assert heading in markdown
+    headings = {line for line in markdown.splitlines() if line.startswith("## ")}
+    assert {
+        "## はてなブックマーク",
+        "## Hacker News",
+        "## Reddit",
+        "## GitHub Trending",
+        "## Qiita",
+        "## Zenn",
+    } <= headings
 
 
 def test_sections_are_ordered_hb_zenn_qiita_github_hn_reddit():
@@ -391,9 +391,9 @@ def test_build_markdown_completes_when_one_source_fails():
             10, "day", datetime(2026, 8, 20, tzinfo=fetch_ai_news.JST)
         )
 
-    assert "## はてなブックマーク（AI 関連 Top 10）" in markdown
+    assert "## はてなブックマーク" in markdown
     assert "| — | (該当なし) | — |" in markdown
-    assert "## Zenn（AI 関連最新記事 Top 10）" in markdown
+    assert "## Zenn" in markdown
 
 
 def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
@@ -421,7 +421,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
             10, "day", datetime(2026, 8, 20, tzinfo=constants.JST)
         )
 
-    assert "## Zenn（AI 関連最新記事 Top 10）" in markdown
+    assert "## Zenn" in markdown
     assert "[Claude AI follow up](https://zenn.dev/example/articles/hn-continued)" in markdown
 
 
@@ -438,21 +438,7 @@ def test_build_markdown_completes_with_empty_reddit_title():
         markdown = fetch_ai_news.build_markdown(10, "day", datetime(2026, 10, 3, tzinfo=constants.JST))
     assert "タイトルなし" in markdown
     assert "Next post" in markdown
-    assert "## Zenn（AI 関連最新記事 Top 10）" in markdown
-
-
-def test_sections_render_custom_limit_in_heading():
-    markdown = _build_markdown_with_empty_sources(5)
-
-    for heading in [
-        "## はてなブックマーク（AI 関連 Top 5）",
-        "## Hacker News（AI 関連 Top 5）",
-        "## Reddit（AI 関連 subreddit 別ピックアップ 5 件）",
-        "## GitHub Trending（AI 関連 Top 5）",
-        "## Qiita（AI 関連人気記事 Top 5）",
-        "## Zenn（AI 関連最新記事 Top 5）",
-    ]:
-        assert heading in markdown
+    assert "## Zenn" in markdown
 
 
 # -------------------------
@@ -484,20 +470,6 @@ def test_reddit_section_limits_rows_to_requested_number():
     body = "\n".join(lines)
     assert "| 3 | r/" in body
     assert "| 4 | r/" not in body
-
-
-def test_reddit_section_heading_states_the_same_count_as_rows():
-    with patch("fetch_reddit.fetch_top_posts_multi", side_effect=_fake_fetch_top_posts_multi(12)):
-        lines = fetch_ai_news.reddit_section(3, "day")
-
-    assert lines[0] == "## Reddit（AI 関連 subreddit 別ピックアップ 3 件）"
-
-
-def test_reddit_section_keeps_default_limit_in_heading():
-    with patch("fetch_reddit.fetch_top_posts_multi", side_effect=_fake_fetch_top_posts_multi(12)):
-        lines = fetch_ai_news.reddit_section(10, "day")
-
-    assert lines[0] == "## Reddit（AI 関連 subreddit 別ピックアップ 10 件）"
 
 
 def test_reddit_section_includes_entries_from_every_subreddit():
@@ -550,7 +522,7 @@ def test_github_trend_section_renders_repository_links():
     with patch("constants.urllib.request.urlopen", return_value=response):
         lines = fetch_ai_news.github_trend_section(1)
     assert lines == [
-        "## GitHub Trending（AI 関連 Top 1）", "", "| 番号 | リポジトリ |", "|---|---|",
+        "## GitHub Trending", "", "| 番号 | リポジトリ |", "|---|---|",
         "| 1 | [example/tool](https://github.com/example/tool) |", "",
     ]
 
