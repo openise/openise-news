@@ -1,5 +1,5 @@
 ---
-title: "Rust 製 Git difftool「OmniDiff」登場、AI 時代のエンジニア育成論"
+title: "2026 年 11 月 02 日（月）"
 createdDate: "20261102110001"
 ---
 

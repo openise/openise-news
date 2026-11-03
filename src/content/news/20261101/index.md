@@ -1,5 +1,5 @@
 ---
-title: "Claude Code × Slack で ISUCON 制覇、AI ゲームクローン規制"
+title: "2026 年 11 月 01 日（日）"
 createdDate: "20261101110001"
 ---
 

@@ -7,7 +7,6 @@ import source from "./ContentCard.astro?raw";
 const props = {
   title: "固定 News",
   href: "/news/20261011/",
-  createdDate: "20261011120000",
 };
 
 describe("ContentCard", () => {
@@ -18,13 +17,9 @@ describe("ContentCard", () => {
     html = await container.renderToString(ContentCard, { props });
   });
 
-  it("作成日時、title を指定順で表示し、 description は表示しない", () => {
-    const dateIndex = html.indexOf("2026年10月11日（日） 12:00");
-    const titleIndex = html.indexOf(">固定 News</span></h3>");
-
-    expect(html).toMatch(/<time datetime="2026-10-11"[^>]*>2026年10月11日（日） 12:00<\/time>/);
-    expect(dateIndex).toBeGreaterThanOrEqual(0);
-    expect(titleIndex).toBeGreaterThan(dateIndex);
+  it("title だけを表示し、日時と description は表示しない", () => {
+    expect(html).toContain(">固定 News</span></h3>");
+    expect(html).not.toContain("<time");
     expect(html).not.toContain("content-card-description");
   });
 
@@ -47,17 +42,13 @@ describe("ContentCard", () => {
     expect(rule).toMatch(/overflow-wrap:\s*anywhere;/);
   });
 
-  it("リンク名はタイトルのみ、補足は日付を参照する", async () => {
+  it("リンク名はタイトルのみにする", async () => {
     const doc = new Window().document;
     doc.body.innerHTML = html;
     const link = doc.querySelector("a")!;
 
     expect(link.getAttribute("href")).toBe("/news/20261011/");
     expect(doc.getElementById(link.getAttribute("aria-labelledby")!)?.textContent).toBe("固定 News");
-    const refs = link.getAttribute("aria-describedby")!.split(" ");
-    expect(refs.map((id) => doc.getElementById(id)?.textContent?.trim())).toEqual([
-      "2026年10月11日（日） 12:00",
-    ]);
   });
 
   it("同じ href の card でも id が一意になる", async () => {

@@ -176,7 +176,7 @@ WEEKDAYS = "月火水木金土日"
 
 def news_title(now: datetime) -> str:
     """キュレーションの成否に関わらず同じタイトルにするため、日付だけで決める。"""
-    return f"[AI ニュース] {now.year} 年 {now.month:02d} 月 {now.day:02d} 日 ({WEEKDAYS[now.weekday()]})"
+    return f"{now.year} 年 {now.month:02d} 月 {now.day:02d} 日（{WEEKDAYS[now.weekday()]}）"
 
 
 def build_markdown(limit: int, period: str, now: datetime) -> str:

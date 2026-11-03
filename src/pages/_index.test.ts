@@ -47,11 +47,8 @@ describe("Homepage", () => {
     expect(document.querySelector("h1")?.textContent).toBe("最新 News のタイトル");
   });
 
-  it("最新 News の日付を描画する", () => {
-    const time = document.querySelector(".content-header time");
-
-    expect(time?.getAttribute("datetime")).toBe("2026-10-11");
-    expect(time?.textContent).toContain("（日）");
+  it("見出しの上に日時を描画しない", () => {
+    expect(document.querySelector(".content-header time")).toBeNull();
   });
 
   it("最新 News の本文を描画する", () => {

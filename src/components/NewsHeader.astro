@@ -1,26 +1,14 @@
 ---
-import { formatDate, toISODate } from "../domain/date";
-
 interface Props {
   title: string;
-  createdDate: string;
 }
 
-const { title, createdDate } = Astro.props;
+const { title } = Astro.props;
 ---
 
-<p class="news-date">
-  <time datetime={toISODate(createdDate)}>{formatDate(createdDate)}</time>
-</p>
 <h1 class="news-title">{title}</h1>
 
 <style>
-  .news-date {
-    margin: 0 0 .5rem;
-    color: var(--color-muted);
-    font-size: .875rem;
-  }
-
   .news-title {
     margin: 0;
     color: var(--color-text);

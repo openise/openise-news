@@ -15,6 +15,6 @@ export async function getStaticPaths() {
 ---
 
 <ContentLayout title={item.data.title}>
-  <NewsHeader slot="header" title={item.data.title} createdDate={item.data.createdDate} />
+  <NewsHeader slot="header" title={item.data.title} />
   <Content />
 </ContentLayout>

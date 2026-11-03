@@ -12,7 +12,7 @@ const Content = latest ? (await render(latest)).Content : undefined;
 
 {latest && Content ? (
   <ContentLayout>
-    <NewsHeader slot="header" title={latest.data.title} createdDate={latest.data.createdDate} />
+    <NewsHeader slot="header" title={latest.data.title} />
     <Content />
     <p class="not-prose news-list"><a class="news-list-link" href={routes.news()}>News の一覧</a></p>
   </ContentLayout>

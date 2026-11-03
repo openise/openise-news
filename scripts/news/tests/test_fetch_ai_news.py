@@ -339,7 +339,7 @@ def test_build_markdown_uses_fixed_title_with_weekday():
     # 2026-08-20 は木曜日
     markdown = _build_markdown_with_empty_sources(10)
 
-    assert 'title: "[AI ニュース] 2026 年 08 月 20 日 (木)"' in markdown
+    assert 'title: "2026 年 08 月 20 日（木）"' in markdown
 
 
 @pytest.mark.parametrize(
@@ -349,7 +349,7 @@ def test_build_markdown_uses_fixed_title_with_weekday():
 def test_news_title_uses_japanese_weekday(day, weekday):
     now = datetime(2026, 11, day, tzinfo=constants.JST)
 
-    assert fetch_ai_news.news_title(now) == f"[AI ニュース] 2026 年 11 月 {day:02d} 日 ({weekday})"
+    assert fetch_ai_news.news_title(now) == f"2026 年 11 月 {day:02d} 日（{weekday}）"
 
 
 def test_build_markdown_completes_when_one_source_fails():

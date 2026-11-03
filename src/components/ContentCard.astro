@@ -1,23 +1,17 @@
 ---
-import { formatDate, toISODate } from "../domain/date";
-
 interface Props {
   title: string;
   href: string;
-  createdDate: string;
   headingLevel?: 2 | 3 | 4 | 5 | 6;
 }
 
-const { title, href, createdDate, headingLevel = 3 } = Astro.props;
+const { title, href, headingLevel = 3 } = Astro.props;
 const cardId = `content-card-${crypto.randomUUID()}`;
 const HeadingTag = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
 ---
 
-<a href={href} class="content-card-link" aria-labelledby={`${cardId}-title`} aria-describedby={`${cardId}-meta`}>
+<a href={href} class="content-card-link" aria-labelledby={`${cardId}-title`}>
   <article class="content-card">
-    <p class="content-card-meta" id={`${cardId}-meta`}>
-      <time datetime={toISODate(createdDate)}>{formatDate(createdDate)}</time>
-    </p>
     <HeadingTag class="content-card-title">
       <span class="content-card-title-text" id={`${cardId}-title`}>{title}</span>
     </HeadingTag>
@@ -31,8 +25,6 @@ const HeadingTag = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   .content-card-link:focus-visible .content-card { border-color: var(--color-accent); }
   .content-card { display: flex; height: 100%; flex-direction: column; border: 1px solid var(--color-border); border-radius: .5rem; padding: 1rem; }
   .content-card-title { display: flex; align-items: center; gap: .5rem; margin: 0 0 .5rem; font-size: 1.25rem; font-weight: 700; }
-  p { margin: 0; }
-  .content-card-meta { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin-bottom: .25rem; color: var(--color-muted); font-size: .875rem; font-weight: 500; }
   /* 長い英単語のタイトルが一覧の grid 列を押し広げないよう、min-content も縮める anywhere を使う（break-word は min-content を縮めない） */
   .content-card-title-text { overflow-wrap: anywhere; }
 </style>
