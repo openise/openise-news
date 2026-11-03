@@ -187,6 +187,7 @@ def test_curate_sends_only_number_source_title_and_score(news_dir):
     assert request.get_header("Authorization") == "Bearer token"
     payload = json.loads(request.data)
     assert payload["max_tokens"] == curate_news.MAX_TOKENS
+    assert payload["chat_template_kwargs"] == {"enable_thinking": False}
     assert payload["messages"][1]["content"] == (
         "候補:\n"
         "1. [はてなブックマーク] Claude Code | 入門 & 実践 (203 users)\n"
@@ -324,6 +325,44 @@ def test_curate_raises_and_keeps_file_on_failure(news_dir, response, message):
         run_curate(news_dir, response)
 
     assert path.read_text(encoding="utf-8") == NEWS
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        # 2026-11-03 の失敗: 思考で max_tokens を使い切り、本文が空
+        (
+            {"choices": [{"finish_reason": "length", "message": {"reasoning_content": "秘密の思考" * 10, "content": ""}}]},
+            "finish_reason: length / 思考の欄: reasoning_content 50 文字",
+        ),
+        (
+            {"choices": [{"finish_reason": "stop", "message": {"content": "説明文"}}]},
+            "finish_reason: stop / 思考の欄: なし",
+        ),
+        (
+            {"response": "<think>秘密の思考</think>説明文"},
+            "finish_reason: None / 思考の欄: <think> 5 文字",
+        ),
+    ],
+)
+def test_curate_logs_finish_reason_and_reasoning_length_on_failure(news_dir, capsys, result, expected):
+    write_news(news_dir, "20261103", NEWS)
+    body = {"success": True, "result": result}
+
+    with pytest.raises(curate_news.CurationError, match="出力が JSON ではありません"):
+        run_curate(news_dir, io.BytesIO(json.dumps(body).encode("utf-8")))
+
+    err = capsys.readouterr().err
+    assert expected in err
+    assert "秘密の思考" not in err
+
+
+def test_curate_reports_finish_reason_when_output_is_missing(news_dir):
+    write_news(news_dir, "20261103", NEWS)
+    body = {"success": True, "result": {"choices": [{"finish_reason": "length", "message": {"reasoning_content": "abc"}}]}}
+
+    with pytest.raises(curate_news.CurationError, match="finish_reason: length / 思考の欄: reasoning_content 3 文字"):
+        run_curate(news_dir, io.BytesIO(json.dumps(body).encode("utf-8")))
 
 
 def test_main_returns_1_without_credentials(monkeypatch, capsys):
