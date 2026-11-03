@@ -26,3 +26,30 @@
 - 外科手術的な変更: 依頼に関係する箇所だけを変える。隣接コードを勝手に改善しない。自分の変更で不要になったものだけを消す
 - ゴール駆動: 検証できる成功基準を決め、テストやコマンドで確かめてから完了とする
 - コードコメントには、コードから分からない理由（WHY）だけを書く
+
+## issue の書式
+
+- タイトル: `<type>: <内容>`（type は commit と同じ）
+- 本文は次の 3 節にする
+  - `## 概要`: 背景と、何をするか
+  - `## Acceptance criteria`: 完了条件を `- [ ]` のチェックリストで書く
+  - `## テスト計画`: 完了をどう確かめるか
+- ラベル（type）を 1 つ付ける: `bug`・`enhancement`（feature）・`documentation`・`refactor`・`chore`
+- priority は付けない
+
+## commit と PR の書式
+
+- commit メッセージと PR タイトル: `<type>: <内容>`
+  - type は `feat`・`fix`・`refactor`・`chore`・`docs`
+  - 例:「chore: GitHub Issues 用の skill と規約を整える」
+- PR の説明の先頭に `Closes #N` を書き、merge 時に issue が自動で close されるようにする
+- merge 後の片付けは、ブランチの自動削除と `Closes #N` による issue の自動 close に任せる
+
+## 検証コマンド
+
+- まだ無い（Astro プロジェクトの作成後に追記する）
+
+## skill の使い分け
+
+- `new-issue`: 依頼内容を issue にするとき。タイトル・3 節の本文・ラベルを提案し、了承を得てから作る
+- `issue-fix`: 既存の issue を実装するとき。issue 番号を引数に渡す。実装・検証・commit・push・PR 作成・issue へのコメントまで行い、merge はしない
