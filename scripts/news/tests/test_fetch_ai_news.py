@@ -323,10 +323,7 @@ def _build_markdown_with_empty_sources(limit: int) -> str:
 def test_sections_keep_top_10_heading_for_default_limit():
     markdown = _build_markdown_with_empty_sources(10)
 
-    assert (
-        'description: "はてなブックマーク・Hacker News・Reddit・GitHub Trend・Qiita・Zenn の Top 10（過去24時間）"'
-        in markdown
-    )
+    assert "description:" not in markdown
     for heading in [
         "## はてなブックマーク（AI 関連 Top 10）",
         "## Hacker News（AI 関連 Top 10）",
@@ -336,6 +333,23 @@ def test_sections_keep_top_10_heading_for_default_limit():
         "## Zenn（AI 関連最新記事 Top 10）",
     ]:
         assert heading in markdown
+
+
+def test_build_markdown_uses_fixed_title_with_weekday():
+    # 2026-08-20 は木曜日
+    markdown = _build_markdown_with_empty_sources(10)
+
+    assert 'title: "[AI ニュース] 2026 年 08 月 20 日 (木)"' in markdown
+
+
+@pytest.mark.parametrize(
+    ("day", "weekday"),
+    [(1, "日"), (2, "月"), (3, "火"), (4, "水"), (5, "木"), (6, "金"), (7, "土")],
+)
+def test_news_title_uses_japanese_weekday(day, weekday):
+    now = datetime(2026, 11, day, tzinfo=constants.JST)
+
+    assert fetch_ai_news.news_title(now) == f"[AI ニュース] 2026 年 11 月 {day:02d} 日 ({weekday})"
 
 
 def test_build_markdown_completes_when_one_source_fails():
@@ -410,13 +424,9 @@ def test_build_markdown_completes_with_empty_reddit_title():
     assert "## Zenn（AI 関連最新記事 Top 10）" in markdown
 
 
-def test_sections_render_custom_limit_in_heading_and_description():
+def test_sections_render_custom_limit_in_heading():
     markdown = _build_markdown_with_empty_sources(5)
 
-    assert (
-        'description: "はてなブックマーク・Hacker News・Reddit・GitHub Trend・Qiita・Zenn の Top 5（過去24時間）"'
-        in markdown
-    )
     for heading in [
         "## はてなブックマーク（AI 関連 Top 5）",
         "## Hacker News（AI 関連 Top 5）",

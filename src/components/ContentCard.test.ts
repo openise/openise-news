@@ -8,7 +8,6 @@ const props = {
   title: "固定 News",
   href: "/news/20261011/",
   createdDate: "20261011120000",
-  description: "固定 News の説明",
 };
 
 describe("ContentCard", () => {
@@ -19,15 +18,14 @@ describe("ContentCard", () => {
     html = await container.renderToString(ContentCard, { props });
   });
 
-  it("作成日時、title、description を指定順で表示する", () => {
+  it("作成日時、title を指定順で表示し、 description は表示しない", () => {
     const dateIndex = html.indexOf("2026年10月11日（日） 12:00");
     const titleIndex = html.indexOf(">固定 News</span></h3>");
-    const descriptionIndex = html.indexOf("固定 News の説明");
 
     expect(html).toMatch(/<time datetime="2026-10-11"[^>]*>2026年10月11日（日） 12:00<\/time>/);
     expect(dateIndex).toBeGreaterThanOrEqual(0);
     expect(titleIndex).toBeGreaterThan(dateIndex);
-    expect(descriptionIndex).toBeGreaterThan(titleIndex);
+    expect(html).not.toContain("content-card-description");
   });
 
   it("heading level を prop で指定した見出しを描画する", async () => {
@@ -43,20 +41,13 @@ describe("ContentCard", () => {
     expect(html).toMatch(/<h3[^>]*><span[^>]*>固定 News<\/span><\/h3>/);
   });
 
-  it("description を 2 行で切り詰める", () => {
-    expect(html).toMatch(/<p[^>]*class="content-card-description"[^>]*>/);
-    expect(source).toMatch(
-      /\.content-card-description\s*\{\s*display: -webkit-box;\s*overflow: hidden;\s*-webkit-box-orient: vertical;\s*-webkit-line-clamp: 2;/s,
-    );
-  });
-
   it("カードのタイトルは収まらない語を途中で折り返し、一覧を横に広げない", () => {
     const rule = source.match(/\.content-card-title-text\s*\{([^}]*)\}/)?.[1] ?? "";
 
     expect(rule).toMatch(/overflow-wrap:\s*anywhere;/);
   });
 
-  it("リンク名はタイトルのみ、補足は日付と説明を参照する", async () => {
+  it("リンク名はタイトルのみ、補足は日付を参照する", async () => {
     const doc = new Window().document;
     doc.body.innerHTML = html;
     const link = doc.querySelector("a")!;
@@ -66,7 +57,6 @@ describe("ContentCard", () => {
     const refs = link.getAttribute("aria-describedby")!.split(" ");
     expect(refs.map((id) => doc.getElementById(id)?.textContent?.trim())).toEqual([
       "2026年10月11日（日） 12:00",
-      "固定 News の説明",
     ]);
   });
 

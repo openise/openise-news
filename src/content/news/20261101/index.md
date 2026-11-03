@@ -1,7 +1,6 @@
 ---
 title: "Claude Code × Slack で ISUCON 制覇、AI ゲームクローン規制"
 createdDate: "20261101110001"
-description: "3 人の Claude Code を Slack でつなぎ ISUCON2026 に参戦した快挙と、Anthropic がゲームクローン生成を制限したポリシー変更が注目を集めた。"
 ---
 
 ## 今日のピックアップ

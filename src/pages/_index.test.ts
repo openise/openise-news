@@ -6,8 +6,8 @@ import source from "./index.astro?raw";
 
 const collections = vi.hoisted(() => ({
   news: [
-    { id: "20261010", data: { title: "古い News", createdDate: "20261010120000", description: "古い News の説明" } },
-    { id: "20261011", data: { title: "固定 News", createdDate: "20261011120000", description: "固定 News の説明" } },
+    { id: "20261010", data: { title: "古い News", createdDate: "20261010120000" } },
+    { id: "20261011", data: { title: "固定 News", createdDate: "20261011120000" } },
   ],
 }));
 

@@ -1,7 +1,6 @@
 ---
 title: "Rust 製 Git difftool「OmniDiff」登場、AI 時代のエンジニア育成論"
 createdDate: "20261102110001"
-description: "Rust 製の構文認識 Git 差分ツール OmniDiff が HN で注目を集める一方、AI によるエンジニア育成環境の変化や Claude Code のコスト・運用ノウハウが話題となった。"
 ---
 
 ## 今日のピックアップ
