@@ -335,6 +335,23 @@ def test_sections_keep_top_10_heading_for_default_limit():
         assert heading in markdown
 
 
+def test_sections_are_ordered_hb_zenn_qiita_github_hn_reddit():
+    markdown = _build_markdown_with_empty_sources(10)
+
+    positions = [
+        markdown.index(heading)
+        for heading in [
+            "## はてなブックマーク",
+            "## Zenn",
+            "## Qiita",
+            "## GitHub Trending",
+            "## Hacker News",
+            "## Reddit",
+        ]
+    ]
+    assert positions == sorted(positions)
+
+
 def test_build_markdown_uses_fixed_title_with_weekday():
     # 2026-08-20 は木曜日
     markdown = _build_markdown_with_empty_sources(10)
