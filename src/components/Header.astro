@@ -93,14 +93,33 @@ const isCurrent = (href: string) => currentPath.startsWith(href);
     cursor: pointer;
   }
 
+  /* 2 段にすると画面上部を大きく使うため 1 段に収め、ブランド名が縮まないよう中央寄せの 1fr 列をやめて右に寄せる。
+     タップ領域は 44px 以上にする */
   @media (max-width: 40rem) {
     .site-nav {
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 0.5rem;
+      padding-block: 0.25rem;
     }
 
-    .site-nav-list {
-      grid-column: 1 / -1;
-      grid-row: 2;
+    .site-nav-brand,
+    .site-nav-list a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+    }
+
+    .site-nav-brand {
+      white-space: nowrap;
+    }
+
+    .site-nav-list a {
+      padding-inline: 0.5rem;
+    }
+
+    #theme-toggle {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
     }
   }
 </style>

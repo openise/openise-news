@@ -40,6 +40,12 @@ const { title, description } = Astro.props;
     padding-block: 3rem;
   }
 
+  @media (max-width: 40rem) {
+    .content-shell {
+      padding-block: 1.5rem;
+    }
+  }
+
   /* 本文の最大幅は openise-daily ・ openise-wiki ・ openise-theme で 50rem に揃えている（daily: src/layouts/ContentLayout.astro、wiki: src/layouts/ContentLayout.astro、theme: src/styles/global.css） */
   .content-article {
     max-width: 50rem;
