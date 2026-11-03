@@ -23,12 +23,17 @@ function executeThemeBootstrap(
 }
 
 describe("BaseLayout", () => {
+  let html = "";
   let themeBootstrap = "";
 
   beforeAll(async () => {
     const container = await AstroContainer.create();
-    const html = await container.renderToString(BaseLayout, { props: { title: "テスト" } });
+    html = await container.renderToString(BaseLayout, { props: { title: "テスト" } });
     themeBootstrap = extractThemeBootstrap(html);
+  });
+
+  it("viewport の meta で初期倍率を 1 にする", () => {
+    expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
   });
 
   it("localStorage が利用できなくても system theme を適用する", () => {

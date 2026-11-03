@@ -120,3 +120,9 @@ code {
   margin-inline: auto;
   padding-block: 3rem;
 }
+
+@media (max-width: 40rem) {
+  .page-shell {
+    padding-block: 1.5rem;
+  }
+}
