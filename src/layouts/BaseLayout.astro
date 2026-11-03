@@ -3,15 +3,24 @@ import "../styles/global.css";
 import Header from "../components/Header.astro";
 import { getThemeBootstrapScript } from "../scripts/client/theme-contract";
 
+const SITE_NAME = "Openise News";
+
 interface Props {
-  title: string;
+  /** 省略するとサイト名だけのタイトルになる（トップページ用） */
+  title?: string;
   description?: string;
+  /** false にすると canonical の代わりに noindex を出力する（404 ページ用） */
+  canonical?: boolean;
 }
 
 const {
   title,
   description = "AI 関連ニュースのピックアップ",
+  canonical = true,
 } = Astro.props;
+const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+// site を設定しない Container API のテストでも描画できるよう、リクエストの origin で代用する
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 const themeBootstrapScript = getThemeBootstrapScript();
 ---
 
@@ -21,7 +30,8 @@ const themeBootstrapScript = getThemeBootstrapScript();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    <title>{title}</title>
+    <title>{pageTitle}</title>
+    {canonical ? <link rel="canonical" href={canonicalURL} /> : <meta name="robots" content="noindex" />}
     <slot name="head" />
     <script is:inline set:html={themeBootstrapScript}></script>
   </head>
