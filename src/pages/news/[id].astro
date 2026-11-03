@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 }
 ---
 
-<ContentLayout title={item.data.title} description={item.data.description}>
+<ContentLayout title={item.data.title}>
   <Fragment slot="header">
     <p class="news-date">
       <time datetime={toISODate(item.data.createdDate)}>{formatDate(item.data.createdDate)}</time>

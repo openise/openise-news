@@ -1,7 +1,6 @@
 ---
 title: "AI ニュース まとめ - 2026-11-03"
 createdDate: "20261103180143"
-description: "はてなブックマーク・Hacker News・Reddit・GitHub Trend・Qiita・Zenn の Top 10（過去24時間）"
 ---
 
 ## はてなブックマーク（AI 関連 Top 10）

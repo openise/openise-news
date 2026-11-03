@@ -171,11 +171,17 @@ def zenn_section(limit: int) -> list[str]:
 # まとめ Markdown 生成
 # -----------------------------------------------------------------------
 
+WEEKDAYS = "月火水木金土日"
+
+
+def news_title(now: datetime) -> str:
+    """キュレーションの成否に関わらず同じタイトルにするため、日付だけで決める。"""
+    return f"[AI ニュース] {now.year} 年 {now.month:02d} 月 {now.day:02d} 日 ({WEEKDAYS[now.weekday()]})"
+
+
 def build_markdown(limit: int, period: str, now: datetime) -> str:
-    period_label = fetch_reddit.PERIOD_LABEL.get(period, period)
     datetime_str = now.strftime("%Y-%m-%d %H:%M:%S")
     date_str = now.strftime("%Y%m%d%H%M%S")
-    date_label = now.strftime("%Y-%m-%d")
 
     print("[INFO] はてなブックマーク 取得中 ...")
     hb = hb_section(limit)
@@ -197,9 +203,8 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
 
     lines = [
         "---",
-        f'title: "AI ニュース まとめ - {date_label}"',
+        f'title: "{news_title(now)}"',
         f'createdDate: "{date_str}"',
-        f'description: "はてなブックマーク・Hacker News・Reddit・GitHub Trend・Qiita・Zenn の Top {limit}（{period_label}）"',
         "---",
         "",
         *hb,

@@ -7,5 +7,4 @@ const dateString = z
 export const newsSchema = z.object({
   title: z.string().min(1),
   createdDate: dateString,
-  description: z.string().min(1),
 });

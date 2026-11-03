@@ -21,14 +21,23 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: News を取得する
         run: python3 scripts/news/fetch_ai_news.py
+
+      # 失敗してもピックアップなしの News を公開するため、ここでは止めず最後のステップで失敗にする
+      - name: Workers AI でピックアップを作る
+        id: curate
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 scripts/news/curate_news.py
 
       - name: source ごとの件数をサマリーに出す
         run: |
@@ -42,9 +51,9 @@ jobs:
             echo ""
             echo "| source | 件数 |"
             echo "|---|---|"
-            # 見出し「## <source>（...）」ごとに、番号が数字の行（記事）を数える
+            # 見出し「## <source>（...）」ごとに、番号が数字の行（記事）を数える。ピックアップの節は source ではないので数えない
             awk '
-              /^## / { if (name != "") print "| " name " | " count " |"; name = substr($0, 4); sub(/（.*/, "", name); count = 0; next }
+              /^## / { if (name != "") print "| " name " | " count " |"; name = substr($0, 4); sub(/（.*/, "", name); if (name == "今日のピックアップ") name = ""; count = 0; next }
               /^\| [0-9]+ \|/ { count++ }
               END { if (name != "") print "| " name " | " count " |" }
             ' "$file"
@@ -70,3 +79,9 @@ jobs:
           git push --force origin "$branch"
           gh pr create --base main --head "$branch" --title "$title" --body "workflow（Daily News）が自動で作成した PR です。"
           gh pr merge "$branch" --squash --delete-branch
+
+      - name: キュレーションの失敗を workflow の失敗にする
+        if: steps.curate.outcome == 'failure'
+        run: |
+          echo "::error::ピックアップを作れなかったため、表だけの News を公開しました。ログの「Workers AI でピックアップを作る」を確認してください"
+          exit 1

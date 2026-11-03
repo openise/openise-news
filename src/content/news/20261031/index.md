@@ -1,7 +1,6 @@
 ---
 title: "Claude Code を狙う指示書攻撃やプラン改編・自律エージェント運用の最前線"
 createdDate: "20261031110001"
-description: "Claude Code を標的としたプロンプト攻撃への警鐘や Anthropic によるプラン改編、LayerX のリモートエージェント基盤 yoro、公式 skills リポジトリなど注目トピックをまとめました。"
 ---
 
 ## 今日のピックアップ
