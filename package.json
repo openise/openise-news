@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
-    "astro": "astro"
+    "astro": "astro",
+    "preview:workers": "wrangler dev"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.20",
@@ -24,6 +25,11 @@
     "@astrojs/check": "^0.9.12",
     "happy-dom": "^21.0.4",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.156.2"
+  },
+  "allowScripts": {
+    "workerd": false,
+    "esbuild": false
   }
 }

@@ -4,6 +4,7 @@
 
 - Openise News: AI 関連ニュースを毎日収集し、ピックアップを公開する Astro 製の静的サイト
 - 公開先: Cloudflare Workers（https://news.openise.jp/）
+- 公開は `main` への merge を契機に Workers Builds が行う（設定は `wrangler.jsonc`）
 
 ## 開発の進め方
 
@@ -51,6 +52,7 @@
 - `npm test`: テスト（Vitest）
 - `npm run build`: 静的サイトのビルド（出力先は `dist/`）
 - `python3 -m pytest scripts/news/tests`: News 取得スクリプトのテスト（pytest は `requirements-dev.txt` で入れる。クラウドセッションでは `scripts/install_pkgs.sh` が入れる）
+- `npm run preview:workers`（`wrangler dev`）は `npm run build` 後の `dist/` を Workers 上の挙動で確かめる確認用で、検証コマンドではない
 
 ## skill の使い分け
 
