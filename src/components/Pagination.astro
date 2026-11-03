@@ -1,0 +1,54 @@
+---
+import { buildPageNumbers } from "../domain/pagination";
+
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  hrefForPage: (page: number) => string;
+}
+
+const { currentPage, lastPage, hrefForPage } = Astro.props;
+const items = buildPageNumbers(currentPage, lastPage);
+---
+
+{
+  lastPage > 1 && (
+    <nav class="pagination" aria-label="ページ">
+      <ul>
+        <li>
+          {currentPage > 1 ? (
+            <a href={hrefForPage(currentPage - 1)}>前へ</a>
+          ) : (
+            <span aria-disabled="true">前へ</span>
+          )}
+        </li>
+        {items.map((item) =>
+          item === "ellipsis" ? (
+            <li class="pagination-ellipsis" aria-hidden="true">…</li>
+          ) : (
+            <li>
+              <a href={hrefForPage(item)} aria-current={item === currentPage ? "page" : undefined}>
+                {item}
+              </a>
+            </li>
+          ),
+        )}
+        <li>
+          {currentPage < lastPage ? (
+            <a href={hrefForPage(currentPage + 1)}>次へ</a>
+          ) : (
+            <span aria-disabled="true">次へ</span>
+          )}
+        </li>
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .pagination ul { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: 0; list-style: none; }
+  .pagination a, .pagination span { display: inline-flex; min-width: 2rem; justify-content: center; padding: .35rem .5rem; border: 1px solid var(--color-border); border-radius: .375rem; text-decoration: none; color: inherit; }
+  .pagination a[aria-current="page"] { border-color: var(--color-accent); color: var(--color-accent); }
+  .pagination span[aria-disabled="true"] { color: var(--color-muted); }
+  .pagination-ellipsis { padding: .35rem .25rem; color: var(--color-muted); }
+</style>
