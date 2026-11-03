@@ -14,3 +14,6 @@ if [ ! -f package-lock.json ]; then
 fi
 
 npm ci
+
+# News 取得スクリプトは標準ライブラリのみで動くため、入れるのはテスト用の pytest だけ
+pip install --quiet -r requirements-dev.txt
