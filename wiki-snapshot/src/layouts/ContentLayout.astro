@@ -1,0 +1,131 @@
+---
+import type { MarkdownHeading } from "astro";
+import BaseLayout from "./BaseLayout.astro";
+import TOC from "../components/TOC.astro";
+import MobileTocBar from "../components/MobileTocBar.astro";
+import { ARTICLE_TYPOGRAPHY_CLASSES } from "../constants/typography";
+
+interface Props {
+  title: string;
+  description?: string;
+  headings: MarkdownHeading[];
+}
+
+const { title, description, headings } = Astro.props;
+const hasToc = headings.some((heading) => heading.depth >= 2 && heading.depth <= 6);
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="content-shell">
+    <article class:list={["content-article", ARTICLE_TYPOGRAPHY_CLASSES]}>
+      {
+        Astro.slots.has("header") && (
+          <header class:list={["content-header not-prose", { "has-toc": hasToc }]}>
+            <slot name="header" />
+          </header>
+        )
+      }
+      {hasToc && <MobileTocBar headings={headings} />}
+      <slot />
+    </article>
+    {
+      hasToc && (
+        <aside class="content-toc" data-pagefind-ignore>
+          <div class="content-toc-card">
+            <TOC headings={headings} />
+          </div>
+        </aside>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script>
+  import { initMermaid } from "../scripts/client/mermaid";
+
+  initMermaid();
+</script>
+
+<script>
+  import { wrapTables } from "../scripts/client/table-scroll";
+
+  wrapTables();
+</script>
+
+<script>
+  import { initTabs } from "../scripts/client/tabs";
+  import { initTocActive } from "../scripts/client/toc-active";
+  import { initMobileTocBar } from "../scripts/client/mobile-toc-bar";
+
+  initTabs();
+  initTocActive();
+  initMobileTocBar();
+</script>
+
+<style>
+  .content-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    /* 本文の左端 max(16px, (画面幅 - 1098px) / 2) は openise-daily ・ openise-wiki ・ openise-theme で揃えている（daily: src/layouts/BaseLayout.astro の <main>、wiki: src/layouts/ContentLayout.astro の .content-shell と src/styles/global.css の .page-shell、theme: src/styles/global.css の .site-main） */
+    width: min(100% - 2rem, 1098px);
+    margin-inline: auto;
+    padding-block: 3rem;
+  }
+
+  /* 本文の最大幅は openise-daily ・ openise-wiki ・ openise-theme で 50rem に揃えている（daily: src/layouts/ContentLayout.astro、wiki: src/layouts/ContentLayout.astro、theme: src/styles/global.css） */
+  .content-article {
+    max-width: 50rem;
+  }
+
+  .content-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .content-header.has-toc {
+    margin-bottom: 0.5rem;
+  }
+
+  .content-toc {
+    display: none;
+  }
+
+  .content-toc-card {
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  .content-article :global(:is(h2, h3, h4, h5, h6)) {
+    scroll-margin-top: 5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .content-shell {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .content-article {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content-header.has-toc {
+      margin-bottom: 2.5rem;
+    }
+
+    .content-toc {
+      display: block;
+      position: sticky;
+      top: 6rem;
+      width: 16rem;
+      flex-shrink: 0;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
+    }
+  }
+</style>

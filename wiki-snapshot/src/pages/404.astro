@@ -1,0 +1,12 @@
+---
+import { routes } from "../domain/routes";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="404">
+  <div class="page-shell">
+    <h1>404</h1>
+    <p>ページが見つかりません。</p>
+    <p><a href={routes.home()}>Home に戻る</a></p>
+  </div>
+</BaseLayout>

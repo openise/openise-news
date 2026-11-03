@@ -1,0 +1,73 @@
+{
+  "name": "openise-wiki",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "predev": "node scripts/utils/ensure-data-store.mjs && npm run copy:mermaid",
+    "copy:mermaid": "node scripts/utils/copy-mermaid.mjs",
+    "migration:dry-run": "node scripts/migration/migrate-openise-daily.mjs --daily-root ../openise-daily --dry-run",
+    "migration:apply": "node scripts/migration/migrate-openise-daily.mjs --daily-root ../openise-daily",
+    "migration:verify": "node scripts/migration/verify-openise-daily.mjs",
+    "validate": "node scripts/content/validate-content.mjs",
+    "link-titles": "node scripts/content/fetch-link-titles.mjs",
+    "pretest": "node scripts/utils/ensure-data-store.mjs",
+    "test": "vitest run",
+    "test:py": "export PATH=\"$HOME/.pyenv/shims:$PATH\"; bash scripts/hooks/require-python-tools.sh pytest && python3 -m pytest .claude/skills/wiki-lint/test_lint.py .claude/hooks/tests scripts/news/tests",
+    "test:all": "npm run test && npm run test:py",
+    "test:e2e": "npm run build && playwright test",
+    "lint:js": "eslint 'src/**/*.{ts,astro}' 'scripts/**/*.{js,mjs}' 'extension/**/*.{js,mjs}' 'e2e/**/*.ts' 'playwright.config.ts'",
+    "lint:py": "export PATH=\"$HOME/.pyenv/shims:$PATH\"; bash scripts/hooks/require-python-tools.sh ruff && ruff check .claude/skills/wiki-lint .claude/hooks scripts/content scripts/news",
+    "lint": "npm run lint:js && npm run lint:py",
+    "check": "NODE_OPTIONS=--max-old-space-size=4096 astro check",
+    "build": "astro build",
+    "prebuild": "npm run copy:mermaid",
+    "prepare": "node scripts/hooks/install-git-hooks.mjs"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "bash .githooks/pre-commit.sh",
+    "pre-push": "bash .githooks/pre-push.sh",
+    "commit-msg": "bash .githooks/commit-msg.sh $1",
+    "post-merge": "bash .githooks/post-merge.sh"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.5",
+    "@expressive-code/plugin-line-numbers": "0.44.3",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "4.3.2",
+    "astro": "7.4.2",
+    "astro-expressive-code": "0.44.3",
+    "d3": "7.9.0",
+    "katex": "0.19.0",
+    "mermaid": "11.16.1",
+    "nlcst-to-string": "4.0.0",
+    "parse-latin": "7.0.0",
+    "retext-smartypants": "6.2.0",
+    "satteri": "0.10.5",
+    "tailwindcss": "4.3.2",
+    "unist-util-visit": "5.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@playwright/test": "1.62.1",
+    "@types/d3": "7.4.3",
+    "@types/hast": "3.0.5",
+    "@types/mdast": "4.0.4",
+    "@typescript-eslint/eslint-plugin": "8.61.0",
+    "@typescript-eslint/parser": "8.61.0",
+    "decode-named-character-reference": "1.3.0",
+    "eslint": "10.5.0",
+    "eslint-plugin-astro": "1.7.0",
+    "globals": "16.5.0",
+    "gray-matter": "4.0.3",
+    "happy-dom": "^20.11.2",
+    "simple-git-hooks": "2.13.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

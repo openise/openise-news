@@ -1,0 +1,61 @@
+---
+import { getCollection } from "astro:content";
+import ContentCard from "../components/ContentCard.astro";
+import EmptyState from "../components/EmptyState.astro";
+import { formatDate, toISODate } from "../domain/date";
+import { latestNews } from "../domain/news";
+import { buildDashboardSections, dashboardSectionLinks } from "../domain/page-data";
+import { routes } from "../domain/routes";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const [wiki, clips, news] = await Promise.all([getCollection("wiki"), getCollection("clips"), getCollection("news")]);
+const { wiki: latestWiki, clips: latestClips } = buildDashboardSections(wiki, clips);
+const sectionLinks = dashboardSectionLinks();
+const latest = latestNews(news);
+---
+
+<BaseLayout title="Openise Wiki">
+  <h1 class="sr-only">Openise Wiki</h1>
+  <div class="page-shell dashboard-grid">
+    {latest && (
+      <a class="latest-news-button" href={routes.newsItem(latest.id)}>
+        <span class="latest-news-label">最新 News</span>
+        <time datetime={toISODate(latest.data.createdDate)}>{formatDate(latest.data.createdDate)}</time>
+        <span class="latest-news-arrow" aria-hidden="true">→</span>
+      </a>
+    )}
+    <section class="dashboard-section" aria-labelledby="latest-wiki-title">
+      <div class="section-heading">
+        <h2 id="latest-wiki-title">最新 Wiki</h2>
+        <a href={sectionLinks.wiki}>すべて見る</a>
+      </div>
+      {latestWiki.length > 0 ? <div class="card-list">{latestWiki.map((item) => <ContentCard title={item.data.title} href={routes.wikiPage(item.id)} createdDate={item.data.updatedDate ?? item.data.createdDate} description={item.data.description} tags={item.data.tags} headingLevel={3} />)}</div> : <EmptyState message="表示できる Wiki はまだありません。" />}
+    </section>
+    <section class="dashboard-section" aria-labelledby="latest-clips-title">
+      <div class="section-heading">
+        <h2 id="latest-clips-title">最新 Clips</h2>
+        <a href={sectionLinks.clips}>すべて見る</a>
+      </div>
+      {latestClips.length > 0 ? <div class="card-list">{latestClips.map((item) => <ContentCard title={item.data.title} href={routes.clip(item.id)} createdDate={item.data.createdDate} updatedDate={item.data.updatedDate} showDateLabels description={item.data.description} tags={item.data.tags} pinned={item.data.pinned} headingLevel={3} />)}</div> : <EmptyState message="表示できる Clip はまだありません。" />}
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .dashboard-grid { display: grid; gap: 2rem; }
+  .dashboard-section + .dashboard-section { margin-top: 3rem; }
+  .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .section-heading h2 { margin: 0; }
+  .card-list { display: grid; gap: 1rem; }
+  .latest-news-button { grid-column: 1 / -1; display: flex; align-items: center; gap: .75rem; width: 100%; min-width: 0; padding: .5rem 1rem; white-space: nowrap; border: 1px solid var(--color-clip-btn-bg); border-radius: .5rem; background: var(--color-clip-btn-bg); color: var(--color-clip-btn-text); text-decoration: none; }
+  .latest-news-label, .latest-news-button time, .latest-news-arrow { flex-shrink: 0; }
+  .latest-news-label { font-weight: 600; }
+  .latest-news-button time { color: inherit; opacity: .85; }
+  .latest-news-arrow { margin-left: auto; }
+  .latest-news-button:hover, .latest-news-button:focus-visible { border-color: var(--color-clip-btn-bg-hover); background: var(--color-clip-btn-bg-hover); }
+  .latest-news-button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  @media (min-width: 40rem) {
+    .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-section + .dashboard-section { margin-top: 0; }
+  }
+</style>

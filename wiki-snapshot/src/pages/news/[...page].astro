@@ -1,0 +1,59 @@
+---
+import type { PaginateFunction, Page } from "astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+import ContentCard from "../../components/ContentCard.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import Pagination from "../../components/Pagination.astro";
+import { PAGE_SIZE } from "../../constants/pagination";
+import { groupNewsByMonth, sortNewsByCreatedDate } from "../../domain/news";
+import { routes } from "../../domain/routes";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths({ paginate }: { paginate: PaginateFunction }) {
+  const news = sortNewsByCreatedDate(await getCollection("news"));
+  return paginate(news, { pageSize: PAGE_SIZE });
+}
+
+const { page }: { page: Page<CollectionEntry<"news">> } = Astro.props;
+const groups = groupNewsByMonth(page.data);
+---
+
+<BaseLayout title="News">
+  <div class="page-shell">
+    <h1>News</h1>
+    {
+      groups.length > 0 ? (
+        <div class="month-list">
+          {groups.map((group) => (
+            <section aria-labelledby={`news-month-${group.month}`}>
+              <h2 id={`news-month-${group.month}`}>{group.label}</h2>
+              <div class="card-list">
+                {group.items.map((item) => (
+                  <ContentCard
+                    title={item.data.title}
+                    href={routes.newsItem(item.id)}
+                    createdDate={item.data.createdDate}
+                    description={item.data.description}
+                    headingLevel={3}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <EmptyState message="表示できる News はまだありません。" />
+      )
+    }
+    <Pagination currentPage={page.currentPage} lastPage={page.lastPage} hrefForPage={routes.news} />
+  </div>
+</BaseLayout>
+
+<style>
+  .month-list { display: grid; gap: 2.5rem; }
+  section h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+  .card-list { display: grid; gap: 1rem; }
+  @media (min-width: 40rem) {
+    .card-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

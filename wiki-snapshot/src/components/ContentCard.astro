@@ -1,0 +1,84 @@
+---
+import { formatDate, toISODate } from "../domain/date";
+
+interface Props {
+  title: string;
+  href: string;
+  createdDate: string;
+  updatedDate?: string;
+  description: string;
+  tags?: string[];
+  pinned?: boolean;
+  showDateLabels?: boolean;
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
+}
+
+const {
+  title,
+  href,
+  createdDate,
+  updatedDate,
+  description,
+  tags = [],
+  pinned = false,
+  showDateLabels = false,
+  headingLevel = 3,
+} = Astro.props;
+const cardId = `content-card-${crypto.randomUUID()}`;
+const descriptionIds = [
+  `${cardId}-meta`,
+  `${cardId}-description`,
+  ...(Astro.slots.has("status") ? [`${cardId}-status`] : []),
+  ...(tags.length > 0 ? [`${cardId}-tags`] : []),
+  ...(pinned ? [`${cardId}-pin`] : []),
+].join(" ");
+const HeadingTag = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
+---
+
+<a href={href} class="content-card-link" aria-labelledby={`${cardId}-title`} aria-describedby={descriptionIds}>
+  <article class="content-card">
+    <p class="content-card-meta" id={`${cardId}-meta`}>
+      {showDateLabels ? (
+        <>
+          <span>作成: <time datetime={toISODate(createdDate)}>{formatDate(createdDate)}</time></span>
+          {updatedDate && <span>更新: <time datetime={toISODate(updatedDate)}>{formatDate(updatedDate)}</time></span>}
+        </>
+      ) : (
+        <time datetime={toISODate(createdDate)}>{formatDate(createdDate)}</time>
+      )}
+    </p>
+    {Astro.slots.has("status") && <div id={`${cardId}-status`}><slot name="status" /></div>}
+    <HeadingTag class="content-card-title">
+      {pinned && <span class="content-card-pin"><span aria-hidden="true">📌</span><span class="sr-only" id={`${cardId}-pin`}>ピン留め</span></span>}
+      <span class="content-card-title-text" id={`${cardId}-title`}>{title}</span>
+    </HeadingTag>
+    <p class="content-card-description" id={`${cardId}-description`}>{description}</p>
+    {tags.length > 0 && <p class="content-card-tags" id={`${cardId}-tags`}>{tags.map((tag) => <span>#{tag}</span>)}</p>}
+  </article>
+</a>
+
+<style>
+  .content-card-link { display: block; height: 100%; color: inherit; text-decoration: none; border-radius: .5rem; }
+  .content-card-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .content-card-link:hover .content-card,
+  .content-card-link:focus-visible .content-card { border-color: var(--color-accent); }
+  .content-card { display: flex; height: 100%; flex-direction: column; border: 1px solid var(--color-border); border-radius: .5rem; padding: 1rem; }
+  .content-card-title { display: flex; align-items: center; gap: .5rem; margin: 0 0 .5rem; font-size: 1.25rem; font-weight: 700; }
+  p { margin: 0; }
+  .content-card-meta { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin-bottom: .25rem; color: var(--color-muted); font-size: .875rem; font-weight: 500; }
+  .content-card-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    margin-bottom: .75rem;
+    color: var(--color-muted);
+    font-size: .875rem;
+    line-height: 1.625;
+  }
+  .content-card-pin { flex-shrink: 0; font-size: 1rem; }
+  /* パス形式の長いタイトルが一覧の grid 列を押し広げないよう、min-content も縮める anywhere を使う（break-word は min-content を縮めない） */
+  .content-card-title-text { overflow-wrap: anywhere; }
+  .content-card-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: auto; border-top: 1px solid var(--color-border); padding-top: .75rem; }
+  .content-card-tags span { border: 1px solid var(--color-border); border-radius: 999px; padding: .1rem .5rem; color: var(--color-muted); font-size: .8rem; font-weight: 500; }
+</style>

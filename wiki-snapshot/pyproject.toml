@@ -1,0 +1,3 @@
+# News 取得 script は Openise Daily と同じ Ruff 対象規則を維持する。
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82", "RUF013", "F541", "F401"]
