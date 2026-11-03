@@ -212,6 +212,27 @@ def test_curate_accepts_code_fenced_json_and_choices_format(news_dir):
     assert "*ソース: Zenn*\n\n   Zenn の記事\n" in path.read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize(
+    "result",
+    [
+        {"choices": [{"message": {
+            "reasoning_content": "候補 1 は重要。[{\"id\": 2}]",
+            "content": '[{"id": 4, "summary": "Zenn の記事"}]',
+        }}]},
+        {"response": '<think>候補 1 は重要。[{"id": 2}]</think>\n[{"id": 4, "summary": "Zenn の記事"}]'},
+    ],
+)
+def test_curate_discards_reasoning_output(news_dir, result):
+    path = write_news(news_dir, "20261103", NEWS)
+    body = {"success": True, "result": result}
+
+    run_curate(news_dir, io.BytesIO(json.dumps(body).encode("utf-8")))
+
+    text = path.read_text(encoding="utf-8")
+    assert "*ソース: Zenn*\n\n   Zenn の記事\n" in text
+    assert "候補 1 は重要" not in text
+
+
 def test_curate_escapes_html_and_links_in_summary(news_dir):
     path = write_news(news_dir, "20261103", NEWS)
     output = json.dumps([{"id": 1, "summary": "<script>x</script>\n[罠](javascript:x)"}])

@@ -31,11 +31,11 @@ from constants import JST
 
 BASE_DIR = str(Path(__file__).resolve().parents[2] / "src/content/news")
 
-# Gemma 3 は 140 以上の言語で学習された多言語モデルで、日本語の短文生成に十分な品質があり、
-# 12B は 70B 級より Neurons の消費が少ない。
-MODEL = "@cf/google/gemma-3-12b-it"
+# 多言語に強い Gemma 4 の MoE 版。推論時に動くパラメータが 4B 程度で Neurons の消費が少ない
+# （入力 9,091 ・出力 27,273 Neurons / 100 万トークン）。
+MODEL = "@cf/google/gemma-4-26b-a4b-it"
 API_URL = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
-# 10 件 × 1 〜 2 文の日本語と JSON の記号が収まる量
+# 10 件 × 1 〜 2 文の日本語と JSON の記号が収まる量。思考の出力が返る場合もこの範囲に収める
 MAX_TOKENS = 1500
 MAX_PICKS = 10
 HISTORY_DAYS = 30
@@ -55,6 +55,7 @@ SOURCES = {
 _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
 _CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")
 _ROW_RE = re.compile(r"^\| \d+ \|")
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 SYSTEM_PROMPT = f"""あなたは AI ・開発ツールのニュースを選ぶ編集者です。
 候補の一覧から「今日のピックアップ」を最大 {MAX_PICKS} 件選び、各記事に日本語で 1 〜 2 文の短いまとめを付けてください。
@@ -205,7 +206,8 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
         raise CurationError(f"Workers AI がエラーを返しました: {errors}")
 
     result = data["result"]
-    # モデルによって応答の形が異なる（ response 形式と OpenAI 互換の choices 形式）
+    # モデルによって応答の形が異なる（ response 形式と OpenAI 互換の choices 形式）。
+    # 思考の出力（ reasoning_content など）は使わずに捨て、本文だけを取り出す
     if "response" in result:
         output = result["response"]
     else:
@@ -213,6 +215,8 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
             output = result["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as e:
             raise CurationError("Workers AI の応答にモデルの出力がありません") from e
+    if isinstance(output, str):
+        output = _THINK_RE.sub("", output)
     return output, result.get("usage") or {}
 
 
