@@ -47,7 +47,9 @@
 
 ## 検証コマンド
 
-- まだ無い（Astro プロジェクトの作成後に追記する）
+- `npm run check`: 型チェック（`astro check`）
+- `npm test`: テスト（Vitest）
+- `npm run build`: 静的サイトのビルド（出力先は `dist/`）
 
 ## skill の使い分け
 
