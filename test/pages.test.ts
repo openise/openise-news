@@ -6,7 +6,7 @@ import NotFound from '../src/pages/404.astro';
 test('トップページにサイト名が表示される', async () => {
   const container = await AstroContainer.create();
   const html = await container.renderToString(Index);
-  expect(html).toContain('<h1>Openise News</h1>');
+  expect(html).toMatch(/<h1[^>]*>Openise News<\/h1>/);
 });
 
 test('404 ページにトップページへのリンクがある', async () => {

@@ -8,6 +8,10 @@
   --color-border: #e2e8f0;
   --color-accent: #2563eb;
   --color-code: #0f172a;
+  /* 青地のボタンは白文字とのコントラストを保つため theme で切り替えず、dark でも同じ青地にする */
+  --color-button-bg: #2563eb;
+  --color-button-bg-hover: #1d4ed8;
+  --color-button-text: #ffffff;
 }
 
 :root[data-theme="dark"] {

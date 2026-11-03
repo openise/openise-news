@@ -1,0 +1,42 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import { formatDate, toISODate } from "../../domain/date";
+import ContentLayout from "../../layouts/ContentLayout.astro";
+
+const id = Astro.params.id ?? "";
+const item = await getEntry("news", id);
+if (!item) return new Response(null, { status: 404 });
+const { Content } = await render(item);
+
+export async function getStaticPaths() {
+  const news = await getCollection("news");
+  return news.map((item) => ({ params: { id: item.id } }));
+}
+---
+
+<ContentLayout title={item.data.title} description={item.data.description}>
+  <Fragment slot="header">
+    <p class="news-date">
+      <time datetime={toISODate(item.data.createdDate)}>{formatDate(item.data.createdDate)}</time>
+    </p>
+    <h1 class="news-title">{item.data.title}</h1>
+  </Fragment>
+  <Content />
+</ContentLayout>
+
+<style>
+  .news-date {
+    margin: 0 0 .5rem;
+    color: var(--color-muted);
+    font-size: .875rem;
+  }
+
+  .news-title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(1.5rem, 4vw, 1.875rem);
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+</style>
