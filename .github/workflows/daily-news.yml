@@ -1,0 +1,72 @@
+name: Daily News
+
+on:
+  schedule:
+    # 毎日 11:00 JST（cron は UTC）
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: daily-news
+  cancel-in-progress: false
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: News を取得する
+        run: python3 scripts/news/fetch_ai_news.py
+
+      - name: source ごとの件数をサマリーに出す
+        run: |
+          file="src/content/news/$(date +%Y%m%d)/index.md"
+          if [ ! -f "$file" ]; then
+            echo "News のファイルがありません: $file" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "## source ごとの件数（$(date +%Y-%m-%d)）"
+            echo ""
+            echo "| source | 件数 |"
+            echo "|---|---|"
+            # 見出し「## <source>（...）」ごとに、番号が数字の行（記事）を数える
+            awk '
+              /^## / { if (name != "") print "| " name " | " count " |"; name = substr($0, 4); sub(/（.*/, "", name); count = 0; next }
+              /^\| [0-9]+ \|/ { count++ }
+              END { if (name != "") print "| " name " | " count " |" }
+            ' "$file"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 差分があれば PR を作って merge する
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(git status --porcelain -- src/content/news)" ]; then
+            echo "差分が無いため PR を作りません"
+            exit 0
+          fi
+          date=$(date +%Y%m%d)
+          branch="news/$date"
+          title="chore: $date の News を追加する"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -- src/content/news
+          git commit -m "$title"
+          # 前回の失敗でブランチが残っていても再実行できるように上書きする
+          git push --force origin "$branch"
+          gh pr create --base main --head "$branch" --title "$title" --body "workflow（Daily News）が自動で作成した PR です。"
+          gh pr merge "$branch" --squash --delete-branch
