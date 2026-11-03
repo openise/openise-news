@@ -34,10 +34,9 @@ describe("public/_headers", () => {
   });
 
   // Web Analytics の計測スクリプトは本番配信時にだけ差し込まれ、ローカルの確認では CSP 違反に気付けない
-  it("should allow the Cloudflare Web Analytics beacon and its endpoint", () => {
+  it("should allow the Cloudflare Web Analytics beacon", () => {
     const csp = getHeader("Content-Security-Policy");
     expect(csp.match(/script-src ([^;]+)/)?.[1]).toContain("https://static.cloudflareinsights.com");
-    expect(csp.match(/connect-src ([^;]+)/)?.[1]).toContain("https://cloudflareinsights.com");
   });
 
   it("should not allow unsafe-inline", () => {

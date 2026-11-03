@@ -1,7 +1,8 @@
 # Cloudflare Workers の静的アセット配信が読むレスポンスヘッダーの設定
-# static.cloudflareinsights.com と cloudflareinsights.com は、本番配信時に Cloudflare が差し込む Web Analytics の計測スクリプトとその送信先
+# static.cloudflareinsights.com は、本番配信時に Cloudflare が差し込む Web Analytics の計測スクリプトの読み込み先
+# 自動差し込みでは計測データの送信先が同じオリジンの /cdn-cgi/rum なので connect-src は default-src 'self' で足りる。計測タグを手で貼る方式に変えるなら connect-src に https://cloudflareinsights.com が必要になる
 # script-src の hash は BaseLayout.astro のテーマ用インラインスクリプトのもの。スクリプトを変えたら src/layouts/headers.test.ts が失敗するので、表示される hash に更新する
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-xeBoVDWs8kRV5ZPToLYkzVrqHG+qCYKwpy8l3EbmCYo=' https://static.cloudflareinsights.com; style-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-xeBoVDWs8kRV5ZPToLYkzVrqHG+qCYKwpy8l3EbmCYo=' https://static.cloudflareinsights.com; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
