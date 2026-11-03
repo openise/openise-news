@@ -3,6 +3,58 @@ title: "AI ニュース まとめ - 2026-11-03"
 createdDate: "20261103180143"
 ---
 
+## 今日のピックアップ
+
+1. **[AIが書く「読みづらいADR」に発狂しかけたので、ADRのガイドラインを作った](https://zenn.dev/tokium_dev/articles/adr-authoring-guideline)**  
+*ソース: はてなブックマーク — 152 users*
+
+   AI が作成する読みづらい ADR に対して、ガイドラインを策定した経験が共有されています。
+
+2. **[Claude CodeやCodexが書いたコードを全部は読まずに自分で説明できるようにする4つの手順 - AIDB](https://ai-data-base.com/archives/139789)**  
+*ソース: はてなブックマーク — 112 users*
+
+   Claude Code や Codex が生成したコードを、全文を読まずに理解・説明するための 4 つの手順が紹介されています。
+
+3. **[Sparks of Weight-Space Programming: LLMs can natively read &amp; write neural network weights](https://rikiyat.github.io/blog/weight-space-programming/)**  
+*ソース: はてなブックマーク — 19 users*
+
+   LLM がニューラルネットワークの重みを直接読み書きできる可能性を示す、研究論文に関するトピックです。
+
+4. **[キーエンス、PLC専用AIエージェント「KV Intelligence」を発売](https://www.keyence.co.jp/news-events/20261102-kv-intelligence.jsp)**  
+*ソース: はてなブックマーク — 52 users*
+
+   キーエンスが、PLC（プログラマブルロジックコントローラ）専用の AI エージェントを発売しました。
+
+5. **[Ask HN: What hardware are you using to run local LLMs?](https://news.ycombinator.com/item?id=50337431)**  
+*ソース: Hacker News — 45 points*
+
+   ローカル LLM を実行するためにどのようなハードウェアを使用しているか、ユーザー間で議論されています。
+
+6. **[AI agent swarms unleashed in Minecraft to ‘build a thriving civilization’ — 50-agent teams fail after falling into paralyzing bureaucracy](https://www.reddit.com/r/OpenAI/comments/1xm1wor/ai_agent_swarms_unleashed_in_minecraft_to_build_a/)**  
+*ソース: Reddit (r/OpenAI)*
+
+   Minecraft 内で AI エージェントのスウォーム（群れ）を放ち文明を作らせる実験の、興味深い失敗例が報告されています。
+
+7. **[vercel-labs/agent-desktop](https://github.com/vercel-labs/agent-desktop)**  
+*ソース: GitHub Trending*
+
+   Vercel Labs による、エージェント向けのデスクトップ環境に関する注目プロジェクトです。
+
+8. **[karpathy/nanochat](https://github.com/karpathy/nanochat)**  
+*ソース: GitHub Trending*
+
+   Andre Karpathy 氏による、nanochat というプロジェクトが GitHub でトレンド入りしています。
+
+9. **[ナレッジグラフを自動生成!?Oracle AI Database 26aiの23.26.4で追加されたGraphRAG機能を試してみた](https://qiita.com/ssfujita/items/62b9502167c97f898b90?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items)**  
+*ソース: Qiita*
+
+   Oracle AI Database 26ai に追加された GraphRAG 機能を実際に試した技術検証記事です。
+
+10. **[インフラの開発環境構築を3ヶ月→1ヶ月にしたClaude Codeの使い方（AWS / ECS 9サービス）](https://qiita.com/shainfra07/items/c149c06162ab1f3b136a?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items)**  
+*ソース: Qiita*
+
+    Claude Code を活用して、AWS / ECS を含むインフラ構築期間を 3 か月から 1 か月に短縮した事例です。
+
 ## はてなブックマーク（AI 関連 Top 10）
 
 | 番号 | タイトル | ブックマーク数 |
