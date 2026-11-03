@@ -1,0 +1,106 @@
+---
+import { routes } from "../domain/routes";
+
+const navItems = [{ href: routes.news(), label: "News" }];
+const currentPath = Astro.url.pathname;
+const isCurrent = (href: string) => currentPath.startsWith(href);
+---
+
+<header class="site-header">
+  <nav class="site-nav" aria-label="メインナビゲーション">
+    <a class="site-nav-brand" href={routes.home()}>Openise News</a>
+    <ul class="site-nav-list">
+      {
+        navItems.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="site-nav-actions">
+      <button id="theme-toggle" type="button" aria-label="テーマを切り替える" aria-pressed="false">
+        <span aria-hidden="true">🌓</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script>
+  import { initTheme, toggleTheme } from "../scripts/client/theme";
+
+  initTheme();
+
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    toggleTheme();
+  });
+</script>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .site-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    width: min(100% - 2rem, 70rem);
+    margin-inline: auto;
+    padding-block: 1rem;
+  }
+
+  .site-nav-brand {
+    justify-self: start;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .site-nav-brand:hover {
+    color: var(--color-accent);
+  }
+
+  .site-nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-self: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav-list a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .site-nav-list a:hover {
+    color: var(--color-accent);
+  }
+
+  .site-nav-actions {
+    justify-self: end;
+  }
+
+  #theme-toggle {
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: none;
+    color: var(--color-text);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+  }
+
+  @media (max-width: 40rem) {
+    .site-nav {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .site-nav-list {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+</style>
