@@ -1,0 +1,32 @@
+---
+import { formatDate, toISODate } from "../domain/date";
+
+interface Props {
+  title: string;
+  createdDate: string;
+}
+
+const { title, createdDate } = Astro.props;
+---
+
+<p class="news-date">
+  <time datetime={toISODate(createdDate)}>{formatDate(createdDate)}</time>
+</p>
+<h1 class="news-title">{title}</h1>
+
+<style>
+  .news-date {
+    margin: 0 0 .5rem;
+    color: var(--color-muted);
+    font-size: .875rem;
+  }
+
+  .news-title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(1.5rem, 4vw, 1.875rem);
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+</style>
