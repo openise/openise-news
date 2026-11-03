@@ -15,6 +15,13 @@ test('404 ページにトップページへのリンクがある', async () => {
   expect(html).toContain('<a href="/">トップページへ戻る</a>');
 });
 
+test('404 ページは canonical を出さず noindex を出力する', async () => {
+  const container = await AstroContainer.create();
+  const html = await container.renderToString(NotFound);
+  expect(html).not.toContain('rel="canonical"');
+  expect(html).toContain('<meta name="robots" content="noindex">');
+});
+
 test.each([
   ['トップページ', Index],
   ['404 ページ', NotFound],

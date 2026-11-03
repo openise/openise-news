@@ -59,7 +59,7 @@ describe("BaseLayout", () => {
 });
 
 describe("BaseLayout の head", () => {
-  async function renderHead(props: { title?: string }, pathname: string): Promise<string> {
+  async function renderHead(props: { title?: string; canonical?: boolean }, pathname: string): Promise<string> {
     const container = await AstroContainer.create({ astroConfig: { site: "https://news.openise.jp" } });
     return container.renderToString(BaseLayout, {
       props,
@@ -85,5 +85,13 @@ describe("BaseLayout の head", () => {
 
     expect(canonicals).toHaveLength(1);
     expect(canonicals[0][1]).toBe("https://news.openise.jp/news/");
+    expect(html).not.toContain('name="robots"');
+  });
+
+  it("canonical={false} なら canonical を出さず noindex を出力する", async () => {
+    const html = await renderHead({ title: "ページが見つかりません", canonical: false }, "/404");
+
+    expect(html).not.toContain('rel="canonical"');
+    expect(html).toContain('<meta name="robots" content="noindex">');
   });
 });
