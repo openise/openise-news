@@ -50,6 +50,7 @@
 - `npm run check`: 型チェック（`astro check`）
 - `npm test`: テスト（Vitest）
 - `npm run build`: 静的サイトのビルド（出力先は `dist/`）
+- `python3 -m pytest scripts/news/tests`: News 取得スクリプトのテスト（pytest は `requirements-dev.txt` で入れる。クラウドセッションでは `scripts/install_pkgs.sh` が入れる）
 
 ## skill の使い分け
 
