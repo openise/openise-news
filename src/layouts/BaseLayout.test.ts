@@ -57,3 +57,33 @@ describe("BaseLayout", () => {
     expect(executeThemeBootstrap(themeBootstrap, storage, "dark").theme).toBe("light");
   });
 });
+
+describe("BaseLayout の head", () => {
+  async function renderHead(props: { title?: string }, pathname: string): Promise<string> {
+    const container = await AstroContainer.create({ astroConfig: { site: "https://news.openise.jp" } });
+    return container.renderToString(BaseLayout, {
+      props,
+      request: new Request(`https://news.openise.jp${pathname}`),
+    });
+  }
+
+  it("title を省略するとサイト名だけにする", async () => {
+    const html = await renderHead({}, "/");
+
+    expect(html).toContain("<title>Openise News</title>");
+  });
+
+  it("title を渡すと「| Openise News」を付ける", async () => {
+    const html = await renderHead({ title: "News" }, "/news/");
+
+    expect(html).toContain("<title>News | Openise News</title>");
+  });
+
+  it("そのページの URL を指す canonical を 1 つ出力する", async () => {
+    const html = await renderHead({ title: "News" }, "/news/");
+    const canonicals = [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)];
+
+    expect(canonicals).toHaveLength(1);
+    expect(canonicals[0][1]).toBe("https://news.openise.jp/news/");
+  });
+});
