@@ -7,6 +7,11 @@ on:
     # 深夜にしておけば、遅れても朝までに公開が終わり、失敗しても朝に手動で再実行できる
     - cron: "47 17 * * *"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "その日の News があっても上書きして取り直す（ピックアップも作り直す）"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,7 +35,15 @@ jobs:
           python-version: "3.12"
 
       - name: News を取得する
-        run: python3 scripts/news/fetch_ai_news.py
+        # schedule の実行では inputs.force が空になり、上書きしない
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            python3 scripts/news/fetch_ai_news.py --force
+          else
+            python3 scripts/news/fetch_ai_news.py
+          fi
 
       # 失敗してもピックアップなしの News を公開するため、ここでは止めず最後のステップで失敗にする
       - name: Workers AI でピックアップを作る
