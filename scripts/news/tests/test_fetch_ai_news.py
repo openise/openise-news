@@ -363,7 +363,7 @@ def test_github_trend_section_renders_repository_table():
 
 
 def test_qiita_section_renders_title_table():
-    entries = [{"title": "AI 記事", "url": "https://qiita.com/example/items/1"}]
+    entries = [{"title": "Claude 記事", "url": "https://qiita.com/example/items/1"}]
     with patch("fetch_qiita.fetch_entries", return_value=entries):
         lines = fetch_ai_news.qiita_section(10)
 
@@ -372,9 +372,71 @@ def test_qiita_section_renders_title_table():
         "",
         "| # | タイトル |",
         "|---|---|",
-        "| 1 | [AI 記事](https://qiita.com/example/items/1) |",
+        "| 1 | [Claude 記事](https://qiita.com/example/items/1) |",
         "",
     ]
+
+
+def test_qiita_section_filters_by_keywords():
+    entries = [
+        {"title": "営業こそコミュニティでは No sell", "url": "https://qiita.com/x/items/1"},
+        {"title": "Claude 記事", "url": "https://qiita.com/x/items/2"},
+    ]
+    with patch("fetch_qiita.fetch_entries", return_value=entries) as fetch:
+        body = "\n".join(fetch_ai_news.qiita_section(10))
+
+    # 除外してから件数を絞るため、全件を受け取る
+    assert fetch.call_args.kwargs["limit"] == 0
+    assert "items/1" not in body
+    assert "| 1 | [Claude 記事](https://qiita.com/x/items/2) |" in body
+
+
+def test_qiita_section_excludes_urls_listed_in_recent_qiita_tables(tmp_path):
+    utm = "?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items"
+    _write_news(tmp_path, "20261103", (
+        "## はてなブックマーク\n\n| 1 | [Claude](https://qiita.com/x/items/hb) | 1 |\n\n---\n\n"
+        f"## Qiita\n\n| # | タイトル |\n|---|---|\n| 1 | [Claude 昨日](https://qiita.com/x/items/old{utm}) |\n"
+    ))
+    _write_news(tmp_path, "20261028", "## Qiita\n\n| 1 | [Claude 7 日前](https://qiita.com/x/items/7days) |\n")
+    _write_news(tmp_path, "20261027", "## Qiita\n\n| 1 | [Claude 8 日前](https://qiita.com/x/items/8days) |\n")
+    entries = [
+        {"title": "Claude 昨日", "url": "https://qiita.com/x/items/old"},
+        {"title": "Claude 7 日前", "url": "https://qiita.com/x/items/7days"},
+        {"title": "Claude 8 日前", "url": "https://qiita.com/x/items/8days"},
+        {"title": "Claude はてなにも載った", "url": "https://qiita.com/x/items/hb"},
+        {"title": "Claude 新しい", "url": "https://qiita.com/x/items/new"},
+    ]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.QIITA_HEADING)
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.qiita_section(10, excluded))
+
+    assert "items/old" not in body
+    assert "items/7days" not in body
+    assert "| 1 | [Claude 8 日前](https://qiita.com/x/items/8days) |" in body
+    assert "| 2 | [Claude はてなにも載った](https://qiita.com/x/items/hb) |" in body
+    assert "| 3 | [Claude 新しい](https://qiita.com/x/items/new) |" in body
+
+
+def test_qiita_section_fills_limit_after_exclusion(tmp_path):
+    _write_news(tmp_path, "20261103", "## Qiita\n\n| 1 | [Claude 0](https://qiita.com/x/0) |\n")
+    entries = [{"title": f"Claude {i}", "url": f"https://qiita.com/x/{i}"} for i in range(3)]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.QIITA_HEADING)
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.qiita_section(2, excluded))
+
+    assert "https://qiita.com/x/0" not in body
+    assert "https://qiita.com/x/1" in body
+    assert "https://qiita.com/x/2" in body
+
+
+def test_qiita_section_shows_placeholder_when_all_entries_excluded(tmp_path):
+    _write_news(tmp_path, "20261103", "## Qiita\n\n| 1 | [Claude](https://qiita.com/x/1) |\n")
+    entries = [{"title": "Claude 記事", "url": "https://qiita.com/x/1"}]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.QIITA_HEADING)
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        lines = fetch_ai_news.qiita_section(10, excluded)
+
+    assert "| — | (該当なし) |" in lines
 
 
 def _zenn(title, url, liked_count=1):
@@ -446,7 +508,7 @@ def test_qiita_section_shows_placeholder_when_source_returns_empty():
     with patch("fetch_qiita.fetch_entries", return_value=[]):
         lines = fetch_ai_news.qiita_section(10)
 
-    assert "| — | (取得できませんでした) |" in lines
+    assert "| — | (該当なし) |" in lines
 
 
 def test_zenn_section_escapes_script_in_title():

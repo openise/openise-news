@@ -31,11 +31,12 @@ import fetch_zenn
 from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
 
 LIMIT = 10
-# はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも数日分の記事が並ぶため、
+# はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも Qiita の人気記事フィードにも数日分の記事が並ぶため、
 # それより長い期間を見て重複を除く
 HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
 ZENN_HEADING = "## Zenn"
+QIITA_HEADING = "## Qiita"
 
 # render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
 _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
@@ -191,10 +192,27 @@ def github_trend_section(limit: int) -> list[str]:
     return simple_table_section("## GitHub Trending", "リポジトリ", entries)
 
 
-def qiita_section(limit: int) -> list[str]:
-    """Qiita AI 関連人気記事 Top N"""
-    entries = fetch_qiita.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section("## Qiita", "タイトル", entries)
+def qiita_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
+    """Qiita 人気記事のうちキーワードに一致するもの Top N（excluded_urls の記事は除外、フィードの順）"""
+    # 過去の表には追跡パラメータ付きの URL が残っているため、外した形にそろえて比べる
+    excluded_urls = {fetch_qiita.strip_query(u) for u in excluded_urls}
+    entries = filter_by_keywords(fetch_qiita.fetch_entries(limit=0), AI_KEYWORDS)
+    entries = [e for e in entries if not _is_excluded(e, excluded_urls)][:limit]
+
+    lines = [
+        QIITA_HEADING,
+        "",
+        "| # | タイトル |",
+        "|---|---|",
+    ]
+    if entries:
+        for i, e in enumerate(entries, 1):
+            link = render_external_link(e["title"], e["url"])
+            lines.append(f"| {i} | {link} |")
+    else:
+        lines.append("| — | (該当なし) |")
+    lines.append("")
+    return lines
 
 
 def zenn_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
@@ -247,7 +265,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     gt = github_trend_section(limit)
 
     print("[INFO] Qiita 取得中 ...")
-    qt = qiita_section(limit)
+    qt = qiita_section(limit, recent_urls(now, BASE_DIR, QIITA_HEADING))
 
     print("[INFO] Zenn 取得中 ...")
     zn = zenn_section(limit, recent_urls(now, BASE_DIR, ZENN_HEADING))
