@@ -2,6 +2,7 @@
 """fetch_reddit.py のテスト"""
 import os
 import sys
+from xml.sax.saxutils import escape
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -59,14 +60,24 @@ def test_fetch_top_posts_sends_the_shared_user_agent(monkeypatch):
     assert mock_fetch.call_args.kwargs["user_agent"] == "TestAgent/9.9"
 
 
-def _atom_feed(entries: list[tuple[str, str, str]]) -> bytes:
-    """(subreddit, title, url) の list から統合 URL 応答を模した Atom feed を組み立てる。"""
-    entry_xml = "".join(
-        f'<entry><category term="{sub}" label="r/{sub}"/>'
-        f"<title>{title}</title>"
-        f'<link href="{url}" /></entry>'
-        for sub, title, url in entries
-    )
+def _atom_feed(entries: list[tuple]) -> bytes:
+    """(subreddit, title, url[, リンク先]) の list から統合 URL 応答を模した Atom feed を組み立てる。
+
+    リンク先を渡すと、実際の応答と同じく content（HTML を XML エスケープしたもの）に
+    "[link]" のアンカーとして入れる。
+    """
+    def _entry(sub, title, url, link=None):
+        content = ""
+        if link is not None:
+            html = f'submitted by /u/someone <span><a href="{link}">[link]</a></span>'
+            content = f'<content type="html">{escape(html)}</content>'
+        return (
+            f'<entry><category term="{sub}" label="r/{sub}"/>'
+            f"<title>{title}</title>{content}"
+            f'<link href="{url}" /></entry>'
+        )
+
+    entry_xml = "".join(_entry(*e) for e in entries)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<feed xmlns="http://www.w3.org/2005/Atom">'
@@ -167,3 +178,69 @@ def test_main_uses_single_fetch_for_one_subreddit(tmp_path):
 
     mock_single.assert_called_once_with("ClaudeCode", 10, "day")
     mock_multi.assert_not_called()
+
+
+@pytest.mark.parametrize("link", [
+    "https://i.redd.it/abc.png",
+    "https://v.redd.it/abc",
+    "https://preview.redd.it/abc.png?width=640&crop=smart",
+    "https://imgur.com/abc",
+    "https://i.imgur.com/abc.jpg",
+    "https://www.reddit.com/gallery/1xabcde",
+])
+def test_fetch_top_posts_multi_excludes_media_posts(link):
+    raw = _atom_feed([
+        ("ClaudeCode", "画像の投稿", "https://reddit.com/1", link),
+        ("ClaudeCode", "次の投稿", "https://reddit.com/2"),
+    ])
+
+    with patch("fetch_reddit.fetch_url", return_value=raw):
+        result = fetch_reddit.fetch_top_posts_multi(["ClaudeCode"], limit=10, period="day")
+
+    assert [p["title"] for p in result["ClaudeCode"]] == ["次の投稿"]
+
+
+@pytest.mark.parametrize("link", [
+    # テキスト投稿は [link] が投稿自身を指す
+    "https://www.reddit.com/r/ClaudeCode/comments/1xabcde/some_post/",
+    "https://example.com/blog/post",
+])
+def test_fetch_top_posts_multi_keeps_text_and_external_link_posts(link):
+    raw = _atom_feed([("ClaudeCode", "残る投稿", "https://reddit.com/1", link)])
+
+    with patch("fetch_reddit.fetch_url", return_value=raw):
+        result = fetch_reddit.fetch_top_posts_multi(["ClaudeCode"], limit=10, period="day")
+
+    assert [p["title"] for p in result["ClaudeCode"]] == ["残る投稿"]
+
+
+def test_fetch_top_posts_multi_keeps_only_first_post_with_same_title():
+    raw = _atom_feed([
+        ("ClaudeCode", "クロスポスト", "https://reddit.com/1"),
+        ("LocalLLaMA", "クロスポスト", "https://reddit.com/2"),
+        ("LocalLLaMA", "別の投稿", "https://reddit.com/3"),
+    ])
+
+    with patch("fetch_reddit.fetch_url", return_value=raw):
+        result = fetch_reddit.fetch_top_posts_multi(["ClaudeCode", "LocalLLaMA"], limit=10, period="day")
+
+    assert [p["url"] for p in result["ClaudeCode"]] == ["https://reddit.com/1"]
+    assert [p["url"] for p in result["LocalLLaMA"]] == ["https://reddit.com/3"]
+
+
+def test_fetch_top_posts_multi_fills_excluded_slots_with_next_posts():
+    raw = _atom_feed([
+        ("ClaudeCode", "画像", "https://reddit.com/1", "https://i.redd.it/a.png"),
+        ("ClaudeCode", "post 2", "https://reddit.com/2"),
+        ("LocalLLaMA", "post 2", "https://reddit.com/3"),
+        ("ClaudeCode", "post 4", "https://reddit.com/4"),
+        ("LocalLLaMA", "post 5", "https://reddit.com/5"),
+        ("LocalLLaMA", "post 6", "https://reddit.com/6"),
+        ("ClaudeCode", "post 7", "https://reddit.com/7"),
+    ])
+
+    with patch("fetch_reddit.fetch_url", return_value=raw):
+        result = fetch_reddit.fetch_top_posts_multi(["ClaudeCode", "LocalLLaMA"], limit=2, period="day")
+
+    assert [p["title"] for p in result["ClaudeCode"]] == ["post 2", "post 4"]
+    assert [p["title"] for p in result["LocalLLaMA"]] == ["post 5", "post 6"]

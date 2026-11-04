@@ -683,7 +683,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
 
 
 def test_build_markdown_completes_with_empty_reddit_title():
-    feed = b'<feed xmlns="http://www.w3.org/2005/Atom"><entry><category term="ClaudeAI"/><title/><link href="https://reddit.com/1"/></entry><entry><category term="ClaudeAI"/><title>Next post</title><link href="https://reddit.com/2"/></entry></feed>'
+    feed = b'<feed xmlns="http://www.w3.org/2005/Atom"><entry><category term="ClaudeCode"/><title/><link href="https://reddit.com/1"/></entry><entry><category term="ClaudeCode"/><title>Next post</title><link href="https://reddit.com/2"/></entry></feed>'
     source_functions = [
         "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits_or_none",
         "fetch_github_trend.fetch_entries", "fetch_qiita.fetch_entries", "fetch_zenn.fetch_entries",
@@ -737,6 +737,26 @@ def test_reddit_section_includes_entries_from_every_subreddit():
     body = "\n".join(lines)
     for subreddit in fetch_ai_news.fetch_reddit.AI_SUBREDDITS:
         assert f"| r/{subreddit} |" in body
+
+
+def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossposts():
+    media = "&lt;a href=&quot;https://i.redd.it/a.png&quot;&gt;[link]&lt;/a&gt;"
+    feed = (
+        '<feed xmlns="http://www.w3.org/2005/Atom">'
+        f'<entry><category term="ClaudeCode"/><title>Meme</title><content type="html">{media}</content>'
+        '<link href="https://reddit.com/1"/></entry>'
+        '<entry><category term="ClaudeCode"/><title>Same title</title><link href="https://reddit.com/2"/></entry>'
+        '<entry><category term="LocalLLaMA"/><title>Same title</title><link href="https://reddit.com/3"/></entry>'
+        '<entry><category term="ChatGPTCoding"/><title>Coding post</title><link href="https://reddit.com/4"/></entry>'
+        '</feed>'
+    ).encode()
+    with patch("fetch_reddit.fetch_url", return_value=feed):
+        body = "\n".join(fetch_ai_news.reddit_section(10, "day"))
+
+    assert "*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding から均等に抽出*" in body
+    assert "Meme" not in body
+    assert body.count("Same title") == 1
+    assert "| 2 | r/ChatGPTCoding | [Coding post](https://reddit.com/4) |" in body
 
 
 # -------------------------
