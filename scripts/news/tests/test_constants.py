@@ -23,8 +23,8 @@ def test_filter_by_keywords_ignores_keyword_inside_word(title):
 
 
 @pytest.mark.parametrize("title", [
-    "LLMs", "AI agents", "Claude Code", "AIエージェント", "OpenAI",
-    "ClaudeCode", "GitHub", "MCPs", "GPTs", "日本語AI", "AI-powered",
+    "LLMs", "AI agents", "Claude Code", "LLMエージェント", "OpenAI",
+    "ClaudeCode", "GitHub", "MCPs", "GPTs", "日本語LLM", "LLM-powered", "生成AIとLLM",
 ])
 def test_filter_by_keywords_matches_plural_and_japanese_neighbor(title):
     entries = [{"title": title}]
@@ -57,6 +57,9 @@ def test_filter_by_keywords_matches_programming_keywords(title):
     "Museum of Modern Art", "Loopback interface",
     # 外したキーワード（claw ・ openclaw ・ vllm ・ litellm）だけを含むタイトル
     "vLLM で推論", "OpenClaw を試す", "LiteLLM proxy", "Claw machine",
+    # ai は外したため、「AI」以外にキーワードを含まないタイトル
+    "高市早苗が細野豪志に手を重ねている画像はAIによる偽画像だよ", "JASRACが生成曲の検知へ AI時代",
+    "AIエージェント", "日本語AI", "AI-powered", "Ask HN: Are you using AI to do election choices",
 ])
 def test_filter_by_keywords_ignores_unlisted_words(title):
     assert constants.filter_by_keywords([{"title": title}], constants.AI_KEYWORDS) == []
