@@ -61,14 +61,14 @@ SYSTEM_PROMPT = f"""あなたは AI ・開発ツールのニュースを選ぶ�
 候補の一覧から「今日のピックアップ」を最大 {MAX_PICKS} 件選び、各記事に日本語で 1 〜 2 文の短いまとめを付けてください。
 
 選定基準:
-- 数値の高さ: はてなブックマークの users 、 Hacker News の points 、 Zenn の likes が高いものを優先する（同じ source 内の比較に使う）
+- 数値の高さ: はてなブックマークの users 、 Hacker News の points 、 Zenn の likes 、 GitHub Trending の stars today が高いものを優先する（同じ source 内の比較に使う）
 - クロスソース: 複数の source で話題になっているトピックを優先する
 - 多様性: 同じトピックが重ならないようにする
 - 技術寄り: Claude Code ・ AI ・開発ツールなど、開発者向けの技術的な話題を優先する
 - 適切な候補が {MAX_PICKS} 件に満たなければ、その件数だけ選ぶ
 
 まとめの書き方:
-- タイトルから分かる範囲で、なぜ注目か・何が読みどころかを書く。タイトルに無い事実を作らない
+- タイトル（ GitHub Trending は説明文も）から分かる範囲で、なぜ注目か・何が読みどころかを書く。そこに無い事実を作らない
 - 日本語と英単語・数字の間には半角スペースを入れる（例:「Claude Code の新機能」「100 件」）
 
 出力は次の形式の JSON 配列だけにしてください。前後に説明文やコードブロックを付けないでください。
@@ -115,6 +115,7 @@ def parse_candidates(body: str) -> list[dict]:
         cells = [c.strip() for c in _CELL_SPLIT_RE.split(line)[1:-1]]
         label = source
         score = None
+        description = None
         if source == "はてなブックマーク":
             score = f"{cells[2]} users"
         elif source == "Hacker News":
@@ -124,11 +125,17 @@ def parse_candidates(body: str) -> list[dict]:
             score = f"{cells[2]} likes"
         elif source == "Reddit":
             label = f"Reddit ({cells[1]})"
+        elif source == "GitHub Trending" and len(cells) >= 4:
+            # 説明・今日のスターの列が無い 2026-11 初めまでの News にも、ピックアップを付け直せるようにする
+            description = cells[2] or None
+            if cells[3] != "—":
+                score = f"{cells[3]} stars today"
 
         candidates.append({
             "id": len(candidates) + 1,
             "source": label,
             "score": score,
+            "description": description,
             "link_text": link.group(1),
             "url": link.group(2),
         })
@@ -172,7 +179,8 @@ def build_prompt(candidates: list[dict]) -> str:
     lines = ["候補:"]
     for c in candidates:
         score = f" ({c['score']})" if c["score"] else ""
-        lines.append(f"{c['id']}. [{c['source']}] {plain_title(c['link_text'])}{score}")
+        description = f" — {plain_title(c['description'])}" if c["description"] else ""
+        lines.append(f"{c['id']}. [{c['source']}] {plain_title(c['link_text'])}{score}{description}")
     return "\n".join(lines)
 
 
