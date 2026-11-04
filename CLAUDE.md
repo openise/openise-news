@@ -57,4 +57,4 @@
 ## skill の使い分け
 
 - `new-issue`: 依頼内容を issue にするとき。タイトル・3 節の本文・ラベルを提案し、了承を得てから作る
-- `issue-fix`: 既存の issue を実装するとき。issue 番号を引数に渡す。実装・検証・commit・push・PR 作成・issue へのコメントまで行い、merge はしない
+- `issue-fix`: 既存の issue を実装するとき。issue 番号を引数に渡す。実装・検証・commit・push・PR 作成・issue の Acceptance criteria のチェックとコメントまで行い、merge はしない
