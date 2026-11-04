@@ -62,7 +62,7 @@ def recent_hb_urls(now: datetime, base_dir: str) -> set[str]:
 
 
 def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
-    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの人気エントリーから AI キーワード一致で抽出、重複記事と excluded_urls の記事は除外）"""
+    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの人気エントリーから AI キーワード一致で抽出、重複記事と excluded_urls の記事は除外、ブックマーク数の多い順）"""
     entries = fetch_hb.fetch_hotentry_tag_entries(category="it", tag="プログラミング", limit=50)
 
     filtered = []
@@ -76,7 +76,8 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
             continue
         seen_titles.add(e["title"])
         filtered.append(e)
-    filtered = filtered[:limit]
+    # sorted は安定ソートなので、同数の記事は取得元ページの順のまま残る
+    filtered = sorted(filtered, key=lambda e: -e["bookmark_count"])[:limit]
 
     lines = [
         HB_HEADING,
