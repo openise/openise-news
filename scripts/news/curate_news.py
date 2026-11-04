@@ -61,7 +61,7 @@ SYSTEM_PROMPT = f"""あなたは AI ・開発ツールのニュースを選ぶ�
 候補の一覧から「今日のピックアップ」を最大 {MAX_PICKS} 件選び、各記事に日本語で 1 〜 2 文の短いまとめを付けてください。
 
 選定基準:
-- 数値の高さ: はてなブックマークの users 、 Hacker News の points が高いものを優先する（同じ source 内の比較に使う）
+- 数値の高さ: はてなブックマークの users 、 Hacker News の points 、 Zenn の likes が高いものを優先する（同じ source 内の比較に使う）
 - クロスソース: 複数の source で話題になっているトピックを優先する
 - 多様性: 同じトピックが重ならないようにする
 - 技術寄り: Claude Code ・ AI ・開発ツールなど、開発者向けの技術的な話題を優先する
@@ -119,6 +119,9 @@ def parse_candidates(body: str) -> list[dict]:
             score = f"{cells[2]} users"
         elif source == "Hacker News":
             score = f"{cells[3]} points"
+        elif source == "Zenn" and len(cells) >= 3:
+            # いいね数の列が無い 2026-11 初めまでの News にも、ピックアップを付け直せるようにする
+            score = f"{cells[2]} likes"
         elif source == "Reddit":
             label = f"Reddit ({cells[1]})"
 

@@ -302,7 +302,7 @@ def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
         _entry("Claude 新しい記事", "https://example.com/new", 10),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
-        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.HB_HEADING)))
     assert "https://example.com/old" not in body
     assert "7 日前の記事" not in body
     assert "| 1 | [Claude 新しい記事](https://example.com/new) | 10 |" in body
@@ -312,26 +312,26 @@ def test_hb_section_fills_limit_after_exclusion(tmp_path):
     _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [Claude 0](https://example.com/0) | 1 |\n")
     entries = [_entry(f"Claude {i}", f"https://example.com/{i}", 1) for i in range(3)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
-        body = "\n".join(fetch_ai_news.hb_section(2, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+        body = "\n".join(fetch_ai_news.hb_section(2, fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.HB_HEADING)))
     assert "https://example.com/0" not in body
     assert "https://example.com/1" in body
     assert "https://example.com/2" in body
 
 
-def test_recent_hb_urls_ignores_other_sections_and_old_news(tmp_path):
+def test_recent_urls_ignores_other_sections_and_old_news(tmp_path):
     _write_news(tmp_path, "20261103", (
         "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/hb) | 1 |\n\n---\n\n"
         "## Qiita\n\n| 1 | [Claude](https://example.com/qiita) |\n"
     ))
     _write_news(tmp_path, "20261027", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/8days) | 1 |\n")
     _write_news(tmp_path, "20261104", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/today) | 1 |\n")
-    assert fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path)) == {"https://example.com/hb"}
+    assert fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.HB_HEADING) == {"https://example.com/hb"}
 
 
 def test_hb_section_outputs_without_past_news(tmp_path):
     entries = [_entry("Claude 記事", "https://example.com/x", 1)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
-        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.HB_HEADING)))
     assert "https://example.com/x" in body
 
 
@@ -339,12 +339,12 @@ def test_hb_section_shows_placeholder_when_all_entries_excluded(tmp_path):
     _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/x) | 1 |\n")
     entries = [_entry("Claude 記事", "https://example.com/x", 1)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
-        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.HB_HEADING)))
     assert "(該当なし)" in body
 
 
 # -------------------------
-# 2 列テーブルのセクション（GitHub Trending / Qiita / Zenn）
+# 2 列テーブルのセクション（GitHub Trending / Qiita）
 # -------------------------
 
 def test_github_trend_section_renders_repository_table():
@@ -377,19 +377,69 @@ def test_qiita_section_renders_title_table():
     ]
 
 
-def test_zenn_section_renders_title_table():
-    entries = [{"title": "AI 記事", "url": "https://zenn.dev/example/articles/1"}]
+def _zenn(title, url, liked_count=1):
+    return {"title": title, "url": url, "liked_count": liked_count}
+
+
+def test_zenn_section_renders_title_and_likes_table():
+    entries = [_zenn("AI 記事", "https://zenn.dev/example/articles/1", 120)]
     with patch("fetch_zenn.fetch_entries", return_value=entries):
         lines = fetch_ai_news.zenn_section(10)
 
     assert lines == [
         "## Zenn",
         "",
-        "| # | タイトル |",
-        "|---|---|",
-        "| 1 | [AI 記事](https://zenn.dev/example/articles/1) |",
+        "| # | タイトル | いいね数 |",
+        "|---|---|---|",
+        "| 1 | [AI 記事](https://zenn.dev/example/articles/1) | 120 |",
         "",
     ]
+
+
+def test_zenn_section_shows_placeholder_when_source_returns_empty():
+    with patch("fetch_zenn.fetch_entries", return_value=[]):
+        lines = fetch_ai_news.zenn_section(10)
+
+    assert "| — | (取得できませんでした) | — |" in lines
+
+
+def test_zenn_section_excludes_urls_listed_in_recent_zenn_tables(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## はてなブックマーク\n\n| 1 | [Claude](https://zenn.dev/x/articles/hb) | 1 |\n\n---\n\n"
+        "## Zenn\n\n| # | タイトル |\n|---|---|\n| 1 | [Claude 昨日](https://zenn.dev/x/articles/old) |\n"
+    ))
+    _write_news(tmp_path, "20261028", "## Zenn\n\n| 1 | [Claude 7 日前](https://zenn.dev/x/articles/7days) | 3 |\n")
+    _write_news(tmp_path, "20261027", "## Zenn\n\n| 1 | [Claude 8 日前](https://zenn.dev/x/articles/8days) | 3 |\n")
+    entries = [
+        _zenn("Claude 昨日", "https://zenn.dev/x/articles/old", 50),
+        _zenn("Claude 7 日前", "https://zenn.dev/x/articles/7days", 40),
+        _zenn("Claude 8 日前", "https://zenn.dev/x/articles/8days", 30),
+        _zenn("Claude はてなにも載った", "https://zenn.dev/x/articles/hb", 20),
+        _zenn("Claude 新しい", "https://zenn.dev/x/articles/new", 10),
+    ]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.ZENN_HEADING)
+    with patch("fetch_zenn.fetch_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.zenn_section(10, excluded))
+
+    assert "articles/old" not in body
+    assert "articles/7days" not in body
+    assert "| 1 | [Claude 8 日前](https://zenn.dev/x/articles/8days) | 30 |" in body
+    assert "| 2 | [Claude はてなにも載った](https://zenn.dev/x/articles/hb) | 20 |" in body
+    assert "| 3 | [Claude 新しい](https://zenn.dev/x/articles/new) | 10 |" in body
+
+
+def test_zenn_section_fills_limit_after_exclusion(tmp_path):
+    _write_news(tmp_path, "20261103", "## Zenn\n\n| 1 | [Claude 0](https://zenn.dev/x/0) | 1 |\n")
+    entries = [_zenn(f"Claude {i}", f"https://zenn.dev/x/{i}") for i in range(3)]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.ZENN_HEADING)
+    with patch("fetch_zenn.fetch_entries", return_value=entries) as fetch:
+        body = "\n".join(fetch_ai_news.zenn_section(2, excluded))
+
+    # 除外してから件数を絞るため、全件を受け取る
+    assert fetch.call_args.kwargs["limit"] == 0
+    assert "https://zenn.dev/x/0" not in body
+    assert "https://zenn.dev/x/1" in body
+    assert "https://zenn.dev/x/2" in body
 
 
 def test_qiita_section_shows_placeholder_when_source_returns_empty():
@@ -400,7 +450,7 @@ def test_qiita_section_shows_placeholder_when_source_returns_empty():
 
 
 def test_zenn_section_escapes_script_in_title():
-    entries = [{"title": "<script>alert(1)</script>", "url": "https://zenn.dev/x"}]
+    entries = [_zenn("<script>alert(1)</script>", "https://zenn.dev/x")]
     with patch("fetch_zenn.fetch_entries", return_value=entries):
         lines = fetch_ai_news.zenn_section(10)
 
@@ -518,7 +568,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
         ("fetch_qiita.fetch_entries", []),
         (
             "fetch_zenn.fetch_entries",
-            [{"title": "Claude AI follow up", "url": "https://zenn.dev/example/articles/hn-continued"}],
+            [{"title": "Claude AI follow up", "url": "https://zenn.dev/example/articles/hn-continued", "liked_count": 1}],
         ),
     ]
     with ExitStack() as stack:
