@@ -110,7 +110,7 @@ def section_md(subreddit: str, posts: list[dict]) -> list[str]:
     lines = [
         f"## r/{subreddit}",
         "",
-        "| 番号 | タイトル |",
+        "| # | タイトル |",
         "|---|---|",
     ]
     if posts:

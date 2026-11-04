@@ -61,7 +61,7 @@ createdDate: "20261101110001"
 
 ## はてなブックマーク
 
-| 番号 | タイトル | ブックマーク数 |
+| # | タイトル | ブックマーク数 |
 |---|---|---|
 | 1 | [AI時代、人間の音楽著作権どう守る　JASRACが生成曲の検知へ（朝日新聞） - Yahoo!ニュース](https://news.yahoo.co.jp/articles/85e366919356c7205191379528eead81a9a45f97) | 10 |
 | 2 | [【追加質問あり】エンジニアはAI失業すると思う？](https://anond.hatelabo.jp/20261030171043) | 47 |
@@ -81,7 +81,7 @@ createdDate: "20261101110001"
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
-| 番号 | 種別 | タイトル | Points | Comments |
+| # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
 | 1 | Ask HN | [Ask HN: Are you using AI to do election choices like Mayor, Special Measures](https://news.ycombinator.com/item?id=50317351) | 6 | 4 |
 | 2 | Show HN | [Show HN: Agent-arcade – Terminal games that pause when Claude Code/Codex is done](https://news.ycombinator.com/item?id=50313989) | 5 | 2 |
@@ -102,7 +102,7 @@ createdDate: "20261101110001"
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
-| 番号 | サブレディット | タイトル |
+| # | サブレディット | タイトル |
 |---|---|---|
 | 1 | r/ClaudeAI | [Security engineer here. The anti-AI hate is getting ridiculous](https://www.reddit.com/r/ClaudeAI/comments/1xkg97u/security_engineer_here_the_antiai_hate_is_getting/) |
 | 2 | r/OpenAI | [So, this is how the world manipulates words? \(A bit into Sam Altman&#x27;s statement\)](https://www.reddit.com/r/OpenAI/comments/1xked68/so_this_is_how_the_world_manipulates_words_a_bit/) |
@@ -122,7 +122,7 @@ createdDate: "20261101110001"
 
 ## GitHub Trending
 
-| 番号 | リポジトリ |
+| # | リポジトリ |
 |---|---|
 | 1 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) |
 | 2 | [mattpocock/skills](https://github.com/mattpocock/skills) |
@@ -140,7 +140,7 @@ createdDate: "20261101110001"
 
 ## Qiita
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [AIにありがちな「イマイチなコードコメント」9パターン](https://qiita.com/jnchito/items/636c519c0b1d347c79b7?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 | 2 | [AIはどれくらい動画編集ができるのか!? Claude CodeでYouTube動画編集した話](https://qiita.com/tsukasa_japan/items/b8bca096170d087e271d?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
@@ -159,7 +159,7 @@ createdDate: "20261101110001"
 
 ## Zenn
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [3 人それぞれの Claude Code を Slack でつないで ISUCON2026 に参加した（207,039 点）](https://zenn.dev/kauche/articles/f3736c660aab77) |
 | 2 | [16GB RAM・6GB VRAM のノート PC で gpt-oss-20b とチャットする](https://zenn.dev/shozotanaka/articles/01877d688dfc65) |

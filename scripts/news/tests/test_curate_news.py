@@ -19,7 +19,7 @@ createdDate: "20261103110001"
 
 ## はてなブックマーク
 
-| 番号 | タイトル | ブックマーク数 |
+| # | タイトル | ブックマーク数 |
 |---|---|---|
 | 1 | [Claude Code \\| 入門 &amp; 実践](https://example.com/hb1) | 203 |
 | 2 | [過去に選んだ記事](https://example.com/old) | 50 |
@@ -29,7 +29,7 @@ createdDate: "20261103110001"
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
-| 番号 | 種別 | タイトル | Points | Comments |
+| # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
 | 1 | Show HN | [Show HN: An agent](https://news.ycombinator.com/item?id=1) | 142 | 30 |
 
@@ -37,7 +37,7 @@ createdDate: "20261103110001"
 
 ## Reddit
 
-| 番号 | サブレディット | タイトル |
+| # | サブレディット | タイトル |
 |---|---|---|
 | 1 | r/ClaudeAI | [Reddit post](https://www.reddit.com/r/ClaudeAI/1) |
 
@@ -45,7 +45,7 @@ createdDate: "20261103110001"
 
 ## Zenn
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [Zenn 記事](https://zenn.dev/x/articles/1) |
 | — | (取得できませんでした) |
@@ -69,7 +69,7 @@ createdDate: "20261020110001"
 
 ## はてなブックマーク
 
-| 番号 | タイトル | ブックマーク数 |
+| # | タイトル | ブックマーク数 |
 |---|---|---|
 | 1 | [表にだけある記事](https://example.com/hb1) | 10 |
 """
@@ -163,7 +163,7 @@ def test_curate_inserts_pickup_after_frontmatter(news_dir, capsys):
 
 def test_curate_indents_summary_by_number_width(news_dir):
     rows = "\n".join(f"| {i} | [記事 {i}](https://zenn.dev/x/{i}) |" for i in range(1, 11))
-    news = NEWS.split("## はてなブックマーク")[0] + f"## Zenn\n\n| 番号 | タイトル |\n|---|---|\n{rows}\n"
+    news = NEWS.split("## はてなブックマーク")[0] + f"## Zenn\n\n| # | タイトル |\n|---|---|\n{rows}\n"
     path = write_news(news_dir, "20261103", news)
     output = json.dumps([{"id": i, "summary": f"まとめ {i}"} for i in range(1, 11)], ensure_ascii=False)
 
