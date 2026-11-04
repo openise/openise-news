@@ -53,8 +53,8 @@ def test_filter_by_keywords_matches_programming_keywords(title):
 
 
 @pytest.mark.parametrize("title", [
-    # 4 文字以上のキーワードは後ろに英字が続いても当たるため、muse ・ loop は入れていない
-    "Museum of Modern Art", "Loopback interface",
+    # 4 文字以上のキーワードは後ろに英字が続いても当たるため、loop は入れていない
+    "Loopback interface",
     # 外したキーワード（claw ・ openclaw ・ vllm ・ litellm）だけを含むタイトル
     "vLLM で推論", "OpenClaw を試す", "LiteLLM proxy", "Claw machine",
     # ai は外したため、「AI」以外にキーワードを含まないタイトル
@@ -62,6 +62,26 @@ def test_filter_by_keywords_matches_programming_keywords(title):
     "AIエージェント", "日本語AI", "AI-powered", "Ask HN: Are you using AI to do election choices",
 ])
 def test_filter_by_keywords_ignores_unlisted_words(title):
+    assert constants.filter_by_keywords([{"title": title}], constants.AI_KEYWORDS) == []
+
+
+@pytest.mark.parametrize("title", [
+    "Google が新モデルを発表", "Meta の Llama", "AWS Lambda 入門", "React 19 の新機能",
+    "npm パッケージ", "Hono で API", "Docker Compose", "Slack bot", "Vercel にデプロイ",
+    "Obsidian のプラグイン", "EmDash を試す", "Muse を使う", "Jev を試す",
+    "Reacts", "Metaの新モデル", "GoogleCloud", "Docker入門",
+])
+def test_filter_by_keywords_matches_added_keywords(title):
+    entries = [{"title": title}]
+    assert constants.filter_by_keywords(entries, constants.AI_KEYWORDS) == entries
+
+
+@pytest.mark.parametrize("title", [
+    # muse ・ meta ・ react ・ hono ・ slack は右側も境界必須のため、別の単語には当たらない
+    "Museum of Modern Art", "metadata の扱い", "reaction GIF", "honor code", "slacker",
+    "Metaverse", "Reactive programming",
+])
+def test_filter_by_keywords_requires_right_boundary_for_whole_word_keywords(title):
     assert constants.filter_by_keywords([{"title": title}], constants.AI_KEYWORDS) == []
 
 
