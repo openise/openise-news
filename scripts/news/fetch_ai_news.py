@@ -28,7 +28,7 @@ import fetch_reddit
 import fetch_github_trend
 import fetch_qiita
 import fetch_zenn
-from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
+from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link, render_table_text
 
 LIMIT = 10
 # はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも Qiita の人気記事フィードにも数日分の記事が並ぶため、
@@ -179,28 +179,25 @@ def reddit_section(limit: int, period: str) -> list[str]:
     return lines
 
 
-def simple_table_section(heading: str, column: str, entries: list[dict]) -> list[str]:
-    """「見出し + 番号・リンクの 2 列テーブル」形式のセクションを生成する。"""
+def github_trend_section(limit: int) -> list[str]:
+    """GitHub Trending AI 関連 Top N"""
+    entries = fetch_github_trend.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
+
     lines = [
-        heading,
+        "## GitHub Trending",
         "",
-        f"| # | {column} |",
-        "|---|---|",
+        "| # | リポジトリ | 説明 | 今日のスター |",
+        "|---|---|---|---|",
     ]
     if entries:
         for i, e in enumerate(entries, 1):
             link = render_external_link(e["title"], e["url"])
-            lines.append(f"| {i} | {link} |")
+            stars = "—" if e["stars_today"] is None else e["stars_today"]
+            lines.append(f"| {i} | {link} | {render_table_text(e['description'])} | {stars} |")
     else:
-        lines.append("| — | (取得できませんでした) |")
+        lines.append("| — | (取得できませんでした) | — | — |")
     lines.append("")
     return lines
-
-
-def github_trend_section(limit: int) -> list[str]:
-    """GitHub Trending AI 関連 Top N"""
-    entries = fetch_github_trend.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section("## GitHub Trending", "リポジトリ", entries)
 
 
 def qiita_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:

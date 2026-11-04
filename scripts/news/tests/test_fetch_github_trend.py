@@ -19,14 +19,14 @@ def _mock_response(body: str):
     return resp
 
 
-def test_fetch_entries_returns_all_entries_with_title_and_url():
+def test_fetch_entries_returns_all_entries_with_description_and_stars_today():
     with patch("constants.urllib.request.urlopen", return_value=_mock_response(TRENDING_HTML)):
         entries = fetch_github_trend.fetch_entries(limit=0)
 
     assert entries == [
-        {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1"},
-        {"title": "example/tool", "url": "https://github.com/example/tool"},
-        {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3"},
+        {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1", "description": "A comfortable chair", "stars_today": 1234},
+        {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant", "stars_today": 1},
+        {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3", "description": "AI agents for developers", "stars_today": None},
     ]
 
 
@@ -66,10 +66,15 @@ TRENDING_HTML = """<!DOCTYPE html>
   <p class="col-9 color-fg-muted my-1">A comfortable chair</p>
   <a href="/awesome/repo1/stargazers">100</a>
   <a href="/contributors">Built by</a>
+  <span class="d-inline-block float-sm-right">
+    <svg class="octicon octicon-star"><path d="M0 0"></path></svg>
+    1,234 stars today
+  </span>
 </article>
 <article class="Box-row">
   <h2 class="h3 lh-condensed"><a href="/example/tool"><span>example /</span> tool</a></h2>
   <p class="col-9 color-fg-muted my-1">An <strong>LLM</strong> tool &amp; assistant</p>
+  <span class="d-inline-block float-sm-right"><svg></svg> 1 star today</span>
 </article>
 <article class="Box-row">
   <h2 class="h3 lh-condensed"><a href="/awesome/repo3">awesome / repo3</a></h2>
@@ -81,9 +86,9 @@ TRENDING_HTML = """<!DOCTYPE html>
 
 def test_parse_trending_html_returns_ordered_repositories():
     assert fetch_github_trend.parse_trending_html(TRENDING_HTML) == [
-        {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1", "description": "A comfortable chair"},
-        {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant"},
-        {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3", "description": "AI agents for developers"},
+        {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1", "description": "A comfortable chair", "stars_today": 1234},
+        {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant", "stars_today": 1},
+        {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3", "description": "AI agents for developers", "stars_today": None},
     ]
 
 
@@ -99,7 +104,7 @@ def test_parse_trending_html_ignores_non_repository_links():
     </article>
     """
     assert fetch_github_trend.parse_trending_html(html) == [
-        {"title": "valid/repo", "url": "https://github.com/valid/repo", "description": ""},
+        {"title": "valid/repo", "url": "https://github.com/valid/repo", "description": "", "stars_today": None},
     ]
 
 
@@ -111,10 +116,27 @@ def test_parse_trending_html_handles_missing_description_and_entities():
     <article class="Box-row"><h2><a href="/two/second"> two / second </a></h2></article>
     """
     assert fetch_github_trend.parse_trending_html(html) == [
-        {"title": "one/first", "url": "https://github.com/one/first", "description": "日本語の AI & LLM"},
-        {"title": "two/second", "url": "https://github.com/two/second", "description": ""},
+        {"title": "one/first", "url": "https://github.com/one/first", "description": "日本語の AI & LLM", "stars_today": None},
+        {"title": "two/second", "url": "https://github.com/two/second", "description": "", "stars_today": None},
     ]
 
+
+
+def test_parse_trending_html_reads_stars_today_only_from_its_own_card():
+    html = """
+    <article class="Box-row"><h2><a href="/one/first">one / first</a></h2>
+      <p class="col-9">12 stars today と書かれた説明</p>
+      <span>
+        23,456
+        stars today
+      </span>
+    </article>
+    <article class="Box-row"><h2><a href="/two/second">two / second</a></h2>
+      <a href="/two/second/stargazers">9,999</a>
+    </article>
+    <p>5 stars today</p>
+    """
+    assert [e["stars_today"] for e in fetch_github_trend.parse_trending_html(html)] == [23456, None]
 
 
 def test_fetch_entries_uses_daily_trending_url():
@@ -125,36 +147,36 @@ def test_fetch_entries_uses_daily_trending_url():
 
     with patch("constants.urllib.request.urlopen", side_effect=respond):
         assert fetch_github_trend.fetch_entries(limit=1) == [
-            {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1"},
+            {"title": "awesome/repo1", "url": "https://github.com/awesome/repo1", "description": "A comfortable chair", "stars_today": 1234},
         ]
 
 
 def test_fetch_entries_matches_description_without_changing_title():
     with patch("constants.urllib.request.urlopen", return_value=_mock_response(TRENDING_HTML)):
         assert fetch_github_trend.fetch_entries(keywords=["LLM"]) == [
-            {"title": "example/tool", "url": "https://github.com/example/tool"},
+            {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant", "stars_today": 1},
         ]
 
 
 def test_fetch_entries_preserves_keyword_boundaries():
     with patch("constants.urllib.request.urlopen", return_value=_mock_response(TRENDING_HTML)):
         assert fetch_github_trend.fetch_entries(keywords=["AI"]) == [
-            {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3"},
+            {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3", "description": "AI agents for developers", "stars_today": None},
         ]
 
 
 def test_fetch_entries_limits_after_filtering():
     with patch("constants.urllib.request.urlopen", return_value=_mock_response(TRENDING_HTML)):
         assert fetch_github_trend.fetch_entries(limit=1, keywords=["LLM", "AI"]) == [
-            {"title": "example/tool", "url": "https://github.com/example/tool"},
+            {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant", "stars_today": 1},
         ]
 
 
 def test_fetch_entries_zero_limit_returns_all_matches():
     with patch("constants.urllib.request.urlopen", return_value=_mock_response(TRENDING_HTML)):
         assert fetch_github_trend.fetch_entries(limit=0, keywords=["LLM", "AI"]) == [
-            {"title": "example/tool", "url": "https://github.com/example/tool"},
-            {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3"},
+            {"title": "example/tool", "url": "https://github.com/example/tool", "description": "An LLM tool & assistant", "stars_today": 1},
+            {"title": "awesome/repo3", "url": "https://github.com/awesome/repo3", "description": "AI agents for developers", "stars_today": None},
         ]
 
 

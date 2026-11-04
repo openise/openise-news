@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """fetch_ai_news.py のセクション生成テスト"""
+import re
 import sys
 import pytest
 from contextlib import ExitStack
@@ -344,22 +345,56 @@ def test_hb_section_shows_placeholder_when_all_entries_excluded(tmp_path):
 
 
 # -------------------------
-# 2 列テーブルのセクション（GitHub Trending / Qiita）
+# GitHub Trending / Qiita のセクション
 # -------------------------
 
+def _repo(title, description="", stars_today=None):
+    return {
+        "title": title,
+        "url": f"https://github.com/{title}",
+        "description": description,
+        "stars_today": stars_today,
+    }
+
+
 def test_github_trend_section_renders_repository_table():
-    entries = [{"title": "awesome/repo", "url": "https://github.com/awesome/repo"}]
+    entries = [_repo("awesome/repo", "AI agent toolkit", 1234)]
     with patch("fetch_github_trend.fetch_entries", return_value=entries):
         lines = fetch_ai_news.github_trend_section(10)
 
     assert lines == [
         "## GitHub Trending",
         "",
-        "| # | リポジトリ |",
-        "|---|---|",
-        "| 1 | [awesome/repo](https://github.com/awesome/repo) |",
+        "| # | リポジトリ | 説明 | 今日のスター |",
+        "|---|---|---|---|",
+        "| 1 | [awesome/repo](https://github.com/awesome/repo) | AI agent toolkit | 1234 |",
         "",
     ]
+
+
+def test_github_trend_section_escapes_description():
+    entries = [_repo("awesome/repo", "A | B [x](javascript:y) <script>\nnext", 5)]
+    with patch("fetch_github_trend.fetch_entries", return_value=entries):
+        row = fetch_ai_news.github_trend_section(10)[4]
+
+    assert row == (
+        "| 1 | [awesome/repo](https://github.com/awesome/repo) "
+        "| A \\| B \\[x\\]\\(javascript:y\\) &lt;script&gt; next | 5 |"
+    )
+    # エスケープしていない | が無く、表の列数が変わらない
+    assert len(table_cells(row)) == 4
+
+
+def test_github_trend_section_keeps_columns_without_description_or_stars():
+    with patch("fetch_github_trend.fetch_entries", return_value=[_repo("awesome/repo")]):
+        row = fetch_ai_news.github_trend_section(10)[4]
+
+    assert row == "| 1 | [awesome/repo](https://github.com/awesome/repo) |  | — |"
+    assert len(table_cells(row)) == 4
+
+
+def table_cells(row):
+    return re.split(r"(?<!\\)\|", row)[1:-1]
 
 
 def test_qiita_section_renders_title_table():
@@ -734,7 +769,7 @@ def test_github_trend_section_renders_repository_links():
     <article class="Box-row"><h2><a href="/example/chair">example / chair</a></h2>
       <p class="col-9">Furniture</p></article>
     <article class="Box-row"><h2><a href="/example/tool">example / tool</a></h2>
-      <p class="col-9">LLM assistant</p></article>
+      <p class="col-9">LLM assistant</p><span><svg></svg> 1,234 stars today</span></article>
     <article class="Box-row"><h2><a href="/example/agent">example / agent</a></h2>
       <p class="col-9">AI agents</p></article>
     </body></html>"""
@@ -744,14 +779,14 @@ def test_github_trend_section_renders_repository_links():
     with patch("constants.urllib.request.urlopen", return_value=response):
         lines = fetch_ai_news.github_trend_section(1)
     assert lines == [
-        "## GitHub Trending", "", "| # | リポジトリ |", "|---|---|",
-        "| 1 | [example/tool](https://github.com/example/tool) |", "",
+        "## GitHub Trending", "", "| # | リポジトリ | 説明 | 今日のスター |", "|---|---|---|---|",
+        "| 1 | [example/tool](https://github.com/example/tool) | LLM assistant | 1234 |", "",
     ]
 
 
 def test_github_trend_section_keeps_empty_result_placeholder():
     with patch("fetch_github_trend.fetch_entries", return_value=[]):
-        assert "| — | (取得できませんでした) |" in fetch_ai_news.github_trend_section(1)
+        assert "| — | (取得できませんでした) | — | — |" in fetch_ai_news.github_trend_section(1)
 
 
 # -------------------------

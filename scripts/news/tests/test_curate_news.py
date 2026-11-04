@@ -211,6 +211,44 @@ def test_curate_reads_zenn_table_without_likes_column(news_dir):
     assert "*ソース: Zenn*\n" in path.read_text(encoding="utf-8")
 
 
+GITHUB_NEWS_HEAD = NEWS.split("## はてなブックマーク")[0]
+
+
+def test_curate_sends_github_description_and_stars_today(news_dir):
+    news = GITHUB_NEWS_HEAD + (
+        "## GitHub Trending\n\n| # | リポジトリ | 説明 | 今日のスター |\n|---|---|---|---|\n"
+        "| 1 | [owner/agent](https://github.com/owner/agent) | AI agent \\| &lt;CLI&gt; | 1234 |\n"
+        "| 2 | [owner/plain](https://github.com/owner/plain) |  | — |\n"
+    )
+    path = write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    payload = json.loads(fake.requests[0].data)
+    assert payload["messages"][1]["content"] == (
+        "候補:\n"
+        "1. [GitHub Trending] owner/agent (1234 stars today) — AI agent | <CLI>\n"
+        "2. [GitHub Trending] owner/plain"
+    )
+    assert "GitHub Trending の stars today" in payload["messages"][0]["content"]
+    assert "*ソース: GitHub Trending — 1234 stars today*\n" in path.read_text(encoding="utf-8")
+
+
+def test_curate_reads_github_table_without_description_and_stars_columns(news_dir):
+    news = GITHUB_NEWS_HEAD + (
+        "## GitHub Trending\n\n| # | リポジトリ |\n|---|---|\n"
+        "| 1 | [owner/agent](https://github.com/owner/agent) |\n"
+    )
+    path = write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == "候補:\n1. [GitHub Trending] owner/agent"
+    assert "*ソース: GitHub Trending*\n" in path.read_text(encoding="utf-8")
+
+
 def test_curate_accepts_code_fenced_json_and_choices_format(news_dir):
     path = write_news(news_dir, "20261103", NEWS)
     body = {
