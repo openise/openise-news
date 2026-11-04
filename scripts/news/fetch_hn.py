@@ -27,25 +27,36 @@ HN_BASE = "https://news.ycombinator.com/item?id="
 
 def fetch_hits(tag: str, since: int, limit: int) -> list[dict]:
     """Algolia HN API から指定タグの記事を取得する。エラー時は空リストを返す。"""
-    url = f"{ALGOLIA_BASE}?tags={tag}&numericFilters=created_at_i%3E{since}&hitsPerPage={limit}"
+    return fetch_hits_or_none(tag, since, limit) or []
+
+
+def fetch_hits_or_none(tag: str, since: int, limit: int, until: int | None = None) -> list[dict] | None:
+    """fetch_hits と同じだが、取得・解析に失敗したときは None を返す。
+
+    until を指定すると、作成日時が until 以下の記事に絞る。
+    """
+    numeric_filters = f"created_at_i%3E{since}"
+    if until is not None:
+        numeric_filters += f"%2Ccreated_at_i%3C%3D{until}"
+    url = f"{ALGOLIA_BASE}?tags={tag}&numericFilters={numeric_filters}&hitsPerPage={limit}"
     raw = fetch_url(url, user_agent=USER_AGENT, source_label="Hacker News")
     if raw is None:
-        return []
+        return None
 
     try:
         data = json.loads(raw)
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         print(f"[WARN] Hacker News: response の decode / JSON パース失敗 {e} — スキップします", file=sys.stderr)
-        return []
+        return None
 
     if not isinstance(data, dict):
         print("[WARN] Hacker News: response の形式が不正です — スキップします", file=sys.stderr)
-        return []
+        return None
 
     hits = data.get("hits")
     if not isinstance(hits, list) or not all(isinstance(hit, dict) for hit in hits):
         print("[WARN] Hacker News: hits の形式が不正です — スキップします", file=sys.stderr)
-        return []
+        return None
 
     return hits
 
