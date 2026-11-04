@@ -101,33 +101,44 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     return lines
 
 
-def hn_section(limit: int) -> list[str]:
-    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N"""
-    since = int((datetime.now(JST) - timedelta(hours=24)).timestamp())
+# Algolia の ask_hn タグには Tell HN や接頭辞のないテキスト投稿も入るため、種別はタイトルで判定する
+HN_KINDS = ("Show HN", "Ask HN", "Tell HN")
+
+
+def hn_kind(title: str) -> str:
+    """タイトルの接頭辞から HN の投稿種別を返す。どれにも当たらなければ「その他」。"""
+    return next((kind for kind in HN_KINDS if title.lower().startswith(kind.lower() + ":")), "その他")
+
+
+def hn_section(limit: int, now: datetime) -> list[str]:
+    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N（24 〜 48 時間前の投稿）"""
+    # 投稿直後は points が付いていないため、1 日たった記事で比べる
+    since = int((now - timedelta(hours=48)).timestamp())
+    until = int((now - timedelta(hours=24)).timestamp())
 
     # 多めに取得してから AI フィルタ
-    show_raw = fetch_hn.fetch_hits("show_hn", since, limit=50)
-    ask_raw  = fetch_hn.fetch_hits("ask_hn",  since, limit=50)
-    show = fetch_hn.filter_by_keywords(show_raw, fetch_hn.AI_KEYWORDS)
-    ask  = fetch_hn.filter_by_keywords(ask_raw,  fetch_hn.AI_KEYWORDS)
+    show_raw = fetch_hn.fetch_hits_or_none("show_hn", since, limit=50, until=until)
+    ask_raw  = fetch_hn.fetch_hits_or_none("ask_hn",  since, limit=50, until=until)
+    hits = fetch_hn.filter_by_keywords((show_raw or []) + (ask_raw or []), fetch_hn.AI_KEYWORDS)
 
-    # タグを付与して合算し、Points 降順 → Comments 降順で Top N
-    for h in show: h["_tag"] = "Show HN"
-    for h in ask:  h["_tag"] = "Ask HN"
-    ranked = sorted(show + ask, key=lambda h: (-(h.get("points") or 0), -(h.get("num_comments") or 0)))[:limit]
+    # Points 降順 → Comments 降順で Top N
+    ranked = sorted(hits, key=lambda h: (-(h.get("points") or 0), -(h.get("num_comments") or 0)))[:limit]
 
     lines = [
         "## Hacker News",
-        "*対象: Show HN + Ask HN の合算ランキング*",
+        "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*",
         "",
         "| # | 種別 | タイトル | Points | Comments |",
         "|---|---|---|---|---|",
     ]
     if ranked:
         for i, h in enumerate(ranked, 1):
+            title = h.get("title") or ""
             url = fetch_hn.HN_BASE + h.get("objectID", "")
-            link = render_external_link(h.get("title") or "", url)
-            lines.append(f"| {i} | {h['_tag']} | {link} | {h.get('points') or 0} | {h.get('num_comments') or 0} |")
+            link = render_external_link(title, url)
+            lines.append(f"| {i} | {hn_kind(title)} | {link} | {h.get('points') or 0} | {h.get('num_comments') or 0} |")
+    elif show_raw is None and ask_raw is None:
+        lines.append("| — | — | (取得できませんでした) | — | — |")
     else:
         lines.append("| — | — | (該当なし) | — | — |")
     lines.append("")
@@ -256,7 +267,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     hb = hb_section(limit, recent_urls(now, BASE_DIR, HB_HEADING))
 
     print("[INFO] Hacker News 取得中 ...")
-    hn = hn_section(limit)
+    hn = hn_section(limit, now)
 
     print("[INFO] Reddit 取得中 ...")
     rd = reddit_section(limit, period)

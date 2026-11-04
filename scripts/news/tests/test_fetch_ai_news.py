@@ -524,7 +524,7 @@ def test_zenn_section_escapes_script_in_title():
 def _build_markdown_with_empty_sources(limit: int) -> str:
     source_functions = [
         "fetch_hb.fetch_entrylist_tag_entries",
-        "fetch_hn.fetch_hits",
+        "fetch_hn.fetch_hits_or_none",
         "fetch_hn.filter_by_keywords",
         "fetch_github_trend.fetch_entries",
         "fetch_qiita.fetch_entries",
@@ -594,7 +594,7 @@ def test_news_title_uses_japanese_weekday(day, weekday):
 def test_build_markdown_completes_when_one_source_fails():
     """1 ソースが非 UTF-8 応答を返しても、最後まで完走して他ソースのセクションが残る。"""
     source_functions = [
-        "fetch_hn.fetch_hits",
+        "fetch_hn.fetch_hits_or_none",
         "fetch_hn.filter_by_keywords",
         "fetch_github_trend.fetch_entries",
         "fetch_qiita.fetch_entries",
@@ -650,7 +650,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
 def test_build_markdown_completes_with_empty_reddit_title():
     feed = b'<feed xmlns="http://www.w3.org/2005/Atom"><entry><category term="ClaudeAI"/><title/><link href="https://reddit.com/1"/></entry><entry><category term="ClaudeAI"/><title>Next post</title><link href="https://reddit.com/2"/></entry></feed>'
     source_functions = [
-        "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits",
+        "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits_or_none",
         "fetch_github_trend.fetch_entries", "fetch_qiita.fetch_entries", "fetch_zenn.fetch_entries",
     ]
     with ExitStack() as stack:
@@ -752,3 +752,84 @@ def test_github_trend_section_renders_repository_links():
 def test_github_trend_section_keeps_empty_result_placeholder():
     with patch("fetch_github_trend.fetch_entries", return_value=[]):
         assert "| — | (取得できませんでした) |" in fetch_ai_news.github_trend_section(1)
+
+
+# -------------------------
+# hn_section
+# -------------------------
+
+HN_NOW = datetime(2026, 11, 4, 2, 47, tzinfo=constants.JST)
+
+
+def test_hn_section_queries_posts_created_24_to_48_hours_before_now():
+    with patch("fetch_hn.fetch_url", return_value=b'{"hits": []}') as mock_fetch:
+        fetch_ai_news.hn_section(10, HN_NOW)
+
+    since = int((HN_NOW - timedelta(hours=48)).timestamp())
+    until = int((HN_NOW - timedelta(hours=24)).timestamp())
+    urls = [call.args[0] for call in mock_fetch.call_args_list]
+    assert urls == [
+        "https://hn.algolia.com/api/v1/search"
+        f"?tags={tag}&numericFilters=created_at_i%3E{since}%2Ccreated_at_i%3C%3D{until}&hitsPerPage=50"
+        for tag in ["show_hn", "ask_hn"]
+    ]
+
+
+def test_hn_section_describes_target_period():
+    with patch("fetch_hn.fetch_hits_or_none", return_value=[]):
+        lines = fetch_ai_news.hn_section(10, HN_NOW)
+
+    assert "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*" in lines
+
+
+@pytest.mark.parametrize(
+    ("title", "kind"),
+    [
+        ("Show HN: My Claude tool", "Show HN"),
+        ("Ask HN: How do you use Claude?", "Ask HN"),
+        ("Tell HN: Claude is down", "Tell HN"),
+        ("Claude usage limits changed", "その他"),
+    ],
+)
+def test_hn_section_labels_kind_by_title_prefix(title, kind):
+    hits = [{"title": title, "objectID": "1", "points": 10, "num_comments": 2}]
+    # ask_hn タグにも Tell HN や接頭辞なしの投稿が入るため、取得元のタグでは種別が決まらない
+    with patch("fetch_hn.fetch_hits_or_none", side_effect=[[], hits]):
+        lines = fetch_ai_news.hn_section(10, HN_NOW)
+
+    assert f"| 1 | {kind} | [{title}](https://news.ycombinator.com/item?id=1) | 10 | 2 |" in lines
+
+
+def test_hn_section_shows_fetch_failure_when_both_fetches_fail():
+    with patch("fetch_hn.fetch_url", return_value=None):
+        lines = fetch_ai_news.hn_section(10, HN_NOW)
+
+    assert "| — | — | (取得できませんでした) | — | — |" in lines
+
+
+def test_hn_section_shows_no_match_when_fetch_succeeds_with_no_hits():
+    with patch("fetch_hn.fetch_url", return_value=b'{"hits": []}'):
+        lines = fetch_ai_news.hn_section(10, HN_NOW)
+
+    assert "| — | — | (該当なし) | — | — |" in lines
+
+
+def test_hn_section_uses_hits_from_successful_fetch_when_other_fails():
+    hits = [{"title": "Show HN: My Claude tool", "objectID": "1", "points": 5, "num_comments": 0}]
+    with patch("fetch_hn.fetch_hits_or_none", side_effect=[hits, None]):
+        lines = fetch_ai_news.hn_section(10, HN_NOW)
+
+    assert "| 1 | Show HN | [Show HN: My Claude tool](https://news.ycombinator.com/item?id=1) | 5 | 0 |" in lines
+
+
+def test_build_markdown_passes_its_now_to_hn_section():
+    now = datetime(2026, 8, 20, tzinfo=constants.JST)
+    with patch("fetch_ai_news.hn_section", return_value=[]) as mock_hn, \
+         patch("fetch_ai_news.hb_section", return_value=[]), \
+         patch("fetch_ai_news.reddit_section", return_value=[]), \
+         patch("fetch_ai_news.github_trend_section", return_value=[]), \
+         patch("fetch_ai_news.qiita_section", return_value=[]), \
+         patch("fetch_ai_news.zenn_section", return_value=[]):
+        fetch_ai_news.build_markdown(10, "day", now)
+
+    mock_hn.assert_called_once_with(10, now)
