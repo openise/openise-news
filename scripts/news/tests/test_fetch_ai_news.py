@@ -233,6 +233,51 @@ def test_hb_section_generates_output_when_source_returns_empty(capsys):
     assert "該当なし" in body
 
 
+def _hb_rows(lines):
+    return [line for line in lines if line.startswith("| ") and "](" in line]
+
+
+def test_hb_section_orders_rows_by_bookmark_count():
+    entries = [
+        _entry("AI a", "https://example.com/a", 10),
+        _entry("AI b", "https://example.com/b", 143),
+        _entry("AI c", "https://example.com/c", 47),
+    ]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        rows = _hb_rows(fetch_ai_news.hb_section(10))
+    assert rows == [
+        "| 1 | [AI b](https://example.com/b) | 143 |",
+        "| 2 | [AI c](https://example.com/c) | 47 |",
+        "| 3 | [AI a](https://example.com/a) | 10 |",
+    ]
+
+
+def test_hb_section_keeps_source_order_for_same_bookmark_count():
+    entries = [
+        _entry("AI first", "https://example.com/1", 20),
+        _entry("AI second", "https://example.com/2", 20),
+        _entry("AI third", "https://example.com/3", 20),
+    ]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        rows = _hb_rows(fetch_ai_news.hb_section(10))
+    assert [r.split("](")[1].split(")")[0] for r in rows] == [
+        "https://example.com/1", "https://example.com/2", "https://example.com/3",
+    ]
+
+
+def test_hb_section_takes_top_n_after_sorting():
+    entries = [
+        _entry("AI low1", "https://example.com/low1", 1),
+        _entry("AI low2", "https://example.com/low2", 2),
+        _entry("AI high", "https://example.com/high", 100),
+    ]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.hb_section(2))
+    assert "https://example.com/high" in body
+    assert "https://example.com/low2" in body
+    assert "https://example.com/low1" not in body
+
+
 def _write_news(base_dir, date, body):
     path = base_dir / date / "index.md"
     path.parent.mkdir(parents=True)
