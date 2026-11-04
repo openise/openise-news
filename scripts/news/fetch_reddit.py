@@ -16,6 +16,8 @@ Reddit サブレディット Top N 取得スクリプト
 """
 
 import os
+import re
+import urllib.parse
 from datetime import datetime
 import argparse
 import xml.etree.ElementTree as ET
@@ -26,10 +28,16 @@ REDDIT_BASE = "https://www.reddit.com"
 ATOM_NS = "http://www.w3.org/2005/Atom"
 
 AI_SUBREDDITS = [
-    "ClaudeAI",
-    "OpenAI",
-    "GeminiAI",
+    "ClaudeCode",
+    "LocalLLaMA",
+    "ChatGPTCoding",
 ]
+
+# 画像・動画・ギャラリーだけの投稿のリンク先。本文も外部記事も無く、ミームや
+# スクリーンショットが大半で技術的な話題にならないため除く
+MEDIA_HOSTS = ("i.redd.it", "v.redd.it", "preview.redd.it", "imgur.com")
+# Atom entry の content（HTML）にある、投稿のリンク先を指す "[link]" のアンカー
+_CONTENT_LINK_RE = re.compile(r'<a href="([^"]+)">\[link\]</a>')
 
 PERIOD_LABEL = {
     "day": "過去24時間", "week": "過去1週間",
@@ -46,6 +54,19 @@ def _parse_entry(entry: ET.Element) -> dict:
         "title": title or "(タイトルなし)",
         "url": link_el.attrib.get("href", "") if link_el is not None else "",
     }
+
+
+def _is_media_entry(entry: ET.Element) -> bool:
+    """投稿のリンク先が画像・動画・ギャラリーなら True を返す。"""
+    content_el = entry.find(f"{{{ATOM_NS}}}content")
+    match = _CONTENT_LINK_RE.search(content_el.text or "") if content_el is not None else None
+    if match is None:
+        return False
+    parsed = urllib.parse.urlparse(match.group(1))
+    host = (parsed.hostname or "").lower()
+    if any(host == h or host.endswith("." + h) for h in MEDIA_HOSTS):
+        return True
+    return (host == "reddit.com" or host.endswith(".reddit.com")) and parsed.path.startswith("/gallery/")
 
 
 def fetch_top_posts(subreddit: str, limit: int, period: str) -> list[dict]:
@@ -80,6 +101,10 @@ def fetch_top_posts_multi(subreddits: list[str], limit: int, period: str) -> dic
     行い、subreddit ごとに逐次リクエストすると 1 件目以外が HTTP 429 になる
     （issue #0113 で実測）。`r/{sub1}+{sub2}+...` の統合 URL であれば 1 リクエスト
     で済むため、この制限を回避できる。エラー時は全 subreddit が空リストになる。
+
+    画像・動画・ギャラリーだけの投稿と、先に出たものと同じタイトルの投稿（クロスポスト）
+    は除き、空いた枠は同じ subreddit の次の投稿で埋める。応答はスコア順なので、
+    同じタイトルでは最もスコアの高い投稿が残る。
     """
     combined = "+".join(subreddits)
     fetch_size = max(limit * len(subreddits), REDDIT_MULTI_FETCH_SIZE)
@@ -97,12 +122,19 @@ def fetch_top_posts_multi(subreddits: list[str], limit: int, period: str) -> dic
     if root is None:
         return results
 
+    seen_titles: set[str] = set()
     for entry in root.findall("atom:entry", ns):
         category_el = entry.find("atom:category", ns)
         subreddit = category_el.attrib.get("term", "") if category_el is not None else ""
         if subreddit not in results or len(results[subreddit]) >= limit:
             continue
-        results[subreddit].append(_parse_entry(entry))
+        if _is_media_entry(entry):
+            continue
+        post = _parse_entry(entry)
+        if post["title"] in seen_titles:
+            continue
+        seen_titles.add(post["title"])
+        results[subreddit].append(post)
     return results
 
 
