@@ -233,6 +233,71 @@ def test_hb_section_generates_output_when_source_returns_empty(capsys):
     assert "該当なし" in body
 
 
+def _write_news(base_dir, date, body):
+    path = base_dir / date / "index.md"
+    path.parent.mkdir(parents=True)
+    path.write_text(body, encoding="utf-8")
+
+
+_NOW = datetime(2026, 11, 4, 7, 0, tzinfo=constants.JST)
+
+
+def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "---\ntitle: x\n---\n## はてなブックマーク\n\n| 番号 | タイトル | ブックマーク数 |\n|---|---|---|\n"
+        "| 1 | [AI 昨日の記事](https://example.com/old) | 10 |\n"
+    ))
+    # frontmatter が無い News も読める
+    _write_news(tmp_path, "20261028", (
+        "## はてなブックマーク\n\n| 1 | [AI 7 日前の記事 \\(GitHub\\)](https://example.com/a_%28b%29) | 5 |\n"
+    ))
+    entries = [
+        _entry("AI 昨日の記事", "https://example.com/old", 30),
+        _entry("AI 7 日前の記事 (GitHub)", "https://example.com/a_(b)", 20),
+        _entry("AI 新しい記事", "https://example.com/new", 10),
+    ]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+    assert "https://example.com/old" not in body
+    assert "7 日前の記事" not in body
+    assert "| 1 | [AI 新しい記事](https://example.com/new) | 10 |" in body
+
+
+def test_hb_section_fills_limit_after_exclusion(tmp_path):
+    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI 0](https://example.com/0) | 1 |\n")
+    entries = [_entry(f"AI {i}", f"https://example.com/{i}", 1) for i in range(3)]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.hb_section(2, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+    assert "https://example.com/0" not in body
+    assert "https://example.com/1" in body
+    assert "https://example.com/2" in body
+
+
+def test_recent_hb_urls_ignores_other_sections_and_old_news(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## はてなブックマーク\n\n| 1 | [AI](https://example.com/hb) | 1 |\n\n---\n\n"
+        "## Qiita\n\n| 1 | [AI](https://example.com/qiita) |\n"
+    ))
+    _write_news(tmp_path, "20261027", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/8days) | 1 |\n")
+    _write_news(tmp_path, "20261104", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/today) | 1 |\n")
+    assert fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path)) == {"https://example.com/hb"}
+
+
+def test_hb_section_outputs_without_past_news(tmp_path):
+    entries = [_entry("AI 記事", "https://example.com/x", 1)]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+    assert "https://example.com/x" in body
+
+
+def test_hb_section_shows_placeholder_when_all_entries_excluded(tmp_path):
+    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/x) | 1 |\n")
+    entries = [_entry("AI 記事", "https://example.com/x", 1)]
+    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
+    assert "(該当なし)" in body
+
+
 # -------------------------
 # 2 列テーブルのセクション（GitHub Trending / Qiita / Zenn）
 # -------------------------
