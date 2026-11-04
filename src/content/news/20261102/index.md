@@ -59,7 +59,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## はてなブックマーク（AI 関連 Top 10）
+<a id="はてなブックマークai-関連-top-10"></a>
+
+## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
 |---|---|---|
@@ -76,7 +78,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## Hacker News（AI 関連 Top 10）
+<a id="hacker-newsai-関連-top-10"></a>
+
+## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
 | 番号 | 種別 | タイトル | Points | Comments |
@@ -95,7 +99,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## Reddit（AI 関連 subreddit 別ピックアップ 10 件）
+<a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
+
+## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
 | 番号 | サブレディット | タイトル |
@@ -114,7 +120,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## GitHub Trending（AI 関連 Top 10）
+<a id="github-trendingai-関連-top-10"></a>
+
+## GitHub Trending
 
 | 番号 | リポジトリ |
 |---|---|
@@ -128,7 +136,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## Qiita（AI 関連人気記事 Top 10）
+<a id="qiitaai-関連人気記事-top-10"></a>
+
+## Qiita
 
 | 番号 | タイトル |
 |---|---|
@@ -145,7 +155,9 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
-## Zenn（AI 関連最新記事 Top 10）
+<a id="zennai-関連最新記事-top-10"></a>
+
+## Zenn
 
 | 番号 | タイトル |
 |---|---|

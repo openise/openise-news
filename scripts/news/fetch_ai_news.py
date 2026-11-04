@@ -50,7 +50,7 @@ def hb_section(limit: int) -> list[str]:
     filtered = filtered[:limit]
 
     lines = [
-        f"## はてなブックマーク（AI 関連 Top {limit}）",
+        "## はてなブックマーク",
         "",
         "| 番号 | タイトル | ブックマーク数 |",
         "|---|---|---|",
@@ -80,7 +80,7 @@ def hn_section(limit: int) -> list[str]:
     ranked = sorted(show + ask, key=lambda h: (-(h.get("points") or 0), -(h.get("num_comments") or 0)))[:limit]
 
     lines = [
-        f"## Hacker News（AI 関連 Top {limit}）",
+        "## Hacker News",
         "*対象: Show HN + Ask HN の合算ランキング*",
         "",
         "| 番号 | 種別 | タイトル | Points | Comments |",
@@ -114,7 +114,7 @@ def reddit_section(limit: int, period: str) -> list[str]:
     top = interleaved[:limit]
 
     lines = [
-        f"## Reddit（AI 関連 subreddit 別ピックアップ {limit} 件）",
+        "## Reddit",
         f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)} から均等に抽出*",
         "",
         "| 番号 | サブレディット | タイトル |",
@@ -152,19 +152,19 @@ def simple_table_section(heading: str, column: str, entries: list[dict]) -> list
 def github_trend_section(limit: int) -> list[str]:
     """GitHub Trending AI 関連 Top N"""
     entries = fetch_github_trend.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section(f"## GitHub Trending（AI 関連 Top {limit}）", "リポジトリ", entries)
+    return simple_table_section("## GitHub Trending", "リポジトリ", entries)
 
 
 def qiita_section(limit: int) -> list[str]:
     """Qiita AI 関連人気記事 Top N"""
     entries = fetch_qiita.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section(f"## Qiita（AI 関連人気記事 Top {limit}）", "タイトル", entries)
+    return simple_table_section("## Qiita", "タイトル", entries)
 
 
 def zenn_section(limit: int) -> list[str]:
     """Zenn AI 関連最新記事 Top N"""
     entries = fetch_zenn.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section(f"## Zenn（AI 関連最新記事 Top {limit}）", "タイトル", entries)
+    return simple_table_section("## Zenn", "タイトル", entries)
 
 
 # -----------------------------------------------------------------------

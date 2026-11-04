@@ -55,7 +55,9 @@ createdDate: "20261103180143"
 
     Claude Code を活用して、AWS / ECS を含むインフラ構築期間を 3 か月から 1 か月に短縮した事例です。
 
-## はてなブックマーク（AI 関連 Top 10）
+<a id="はてなブックマークai-関連-top-10"></a>
+
+## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
 |---|---|---|
@@ -72,7 +74,9 @@ createdDate: "20261103180143"
 
 ---
 
-## Hacker News（AI 関連 Top 10）
+<a id="hacker-newsai-関連-top-10"></a>
+
+## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
 | 番号 | 種別 | タイトル | Points | Comments |
@@ -91,7 +95,9 @@ createdDate: "20261103180143"
 
 ---
 
-## Reddit（AI 関連 subreddit 別ピックアップ 10 件）
+<a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
+
+## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
 | 番号 | サブレディット | タイトル |
@@ -110,7 +116,9 @@ createdDate: "20261103180143"
 
 ---
 
-## GitHub Trending（AI 関連 Top 10）
+<a id="github-trendingai-関連-top-10"></a>
+
+## GitHub Trending
 
 | 番号 | リポジトリ |
 |---|---|
@@ -125,7 +133,9 @@ createdDate: "20261103180143"
 
 ---
 
-## Qiita（AI 関連人気記事 Top 10）
+<a id="qiitaai-関連人気記事-top-10"></a>
+
+## Qiita
 
 | 番号 | タイトル |
 |---|---|
@@ -142,7 +152,9 @@ createdDate: "20261103180143"
 
 ---
 
-## Zenn（AI 関連最新記事 Top 10）
+<a id="zennai-関連最新記事-top-10"></a>
+
+## Zenn
 
 | 番号 | タイトル |
 |---|---|
