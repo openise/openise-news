@@ -1,84 +1,85 @@
 ---
 title: "2026 年 11 月 04 日（水）"
-createdDate: "20261104203653"
+createdDate: "20261104214334"
 ---
 
 ## 今日のピックアップ
 
 1. **[E2Eテスト大全（あなたの知らない、E2Eテスト周辺の理論） - 若くない何かの悩み](https://blog.kuniwak.com/entry/e2ebok)**  
-*ソース: はてなブックマーク — 537 users*
+*ソース: はてなブックマーク — 555 users*
 
-   E2E テストの周辺にある理論や知識を網羅的に解説した、テスト設計の深い理解に役立つ記事です。
+   E2E テストの周辺にある理論や知識について網羅的に解説した、テスト設計の深い理解に役立つ記事です。
 
 2. **[OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757)**  
-*ソース: Hacker News — 487 points*
+*ソース: Hacker News — 492 points*
 
-   OpenAI が Codex チャットでのモデル学習を密かに再開している可能性があるという、プライバシーに関する重要な指摘です。
+   OpenAI が Codex のチャット内容をモデルの学習に再利用している可能性があるという、プライバシーに関する議論です。
 
-3. **[バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415)**  
-*ソース: はてなブックマーク — 73 users*
+3. **[Tell HN: Gemini trains on chat history, even for subscribers \(personal accounts\)](https://news.ycombinator.com/item?id=50363461)**  
+*ソース: Hacker News — 117 points*
 
-   Claude Code を使用して機能を継ぎ足していく中で見えてきた、ツールの実装上のクセを体験的にまとめています。
+   Gemini がサブスクリプション利用者であってもチャット履歴を学習に利用しているという指摘です。
 
-4. **[「⚪︎⚪︎はしないで」は効かない？AI Agent の危険行動を制限する 5 つの方法と守られる強さで比べた](https://qiita.com/songchong/items/945479177d4dcbb80f69?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items)**  
-*ソース: Qiita*
+4. **[バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415)**  
+*ソース: はてなブックマーク — 74 users*
 
-   AI Agent の危険な行動を制限する際、「〜しないで」という指示がどの程度有効かを 5 つの手法で比較検証しています。
+   Claude Code を使った「バイブコーディング」を通じて見えてきた、ツールの実装上のクセを考察しています。
 
-5. **[Claude Codeを導入して開発速度が5倍になったのに、なぜ私の疲労度は10倍になったのか](https://qiita.com/xiaoy/items/c4340fda4f660e9c2e4b?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items)**  
-*ソース: Qiita*
+5. **[HonoがPRを閉じた理由](https://slides.yusu.ke/foss4g-2026)**  
+*ソース: はてなブックマーク — 119 users*
 
-   Claude Code の導入で開発速度が向上した一方で、開発者の疲労感が増大したという興味深い副作用を綴っています。
+   Hono プロジェクトがなぜ PR を閉じるに至ったのか、その経緯と理由についての記録です。
 
-6. **[thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)**  
+6. **[OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest)**  
+*ソース: Zenn — 35 likes*
+
+   Docker と GitHub Actions を活用し、AI による自動ペネトレーションテストを構築する手法を紹介しています。
+
+7. **[The-PR-Agent/pr-agent](https://github.com/The-PR-Agent/pr-agent)**  
 *ソース: GitHub Trending*
 
-   GitHub Trending に掲載された、Claude の記憶を扱うためのツール「claude-mem」です。
+   GitHub 上でトレンド入りしている、プルリクエストの管理を支援する AI エージェント「pr-agent」です。
 
-7. **[Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468)**  
-*ソース: Hacker News — 41 points*
+8. **[thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)**  
+*ソース: GitHub Trending*
 
-   RLHF や LoRA、LLM の評価指標など、大規模言語モデルの基盤技術に関するインタラクティブな解説記事です。
+   Claude にメモリを持たせるためのツールとして注目されている、GitHub トレンドのリポジトリです。
 
-8. **[I gave every Claude model the exact same prompt since July 2025. 13 models, 14 months, here&#x27;s the evolution](https://www.reddit.com/r/ClaudeAI/comments/1xn6eli/i_gave_every_claude_model_the_exact_same_prompt/)**  
-*ソース: Reddit (r/ClaudeAI)*
+9. **[ADRをregoでlintする](https://zenn.dev/babarot/articles/regomark-adr-checker)**  
+*ソース: Zenn — 38 likes*
 
-   2025 年 7 月から 13 の Claude モデルに対して同一のプロンプトを投げ続け、その進化を記録した比較検証です。
+   ADR（Architecture Decision Records）を rego を使って lint する、アーキテクチャ管理の自動化手法です。
 
-9. **[Tell HN: Gemini trains on chat history, even for subscribers \(personal accounts\)](https://news.ycombinator.com/item?id=50363461)**  
-*ソース: Hacker News — 33 points*
+10. **[Claude Codeを導入して開発速度が5倍になったのに、なぜ私の疲労度は10倍になったのか](https://qiita.com/xiaoy/items/c4340fda4f660e9c2e4b?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items)**  
+*ソース: Qiita*
 
-   Gemini がサブスクリプション利用者であっても、チャット履歴を学習に使用しているという指摘です。
-
-10. **[弊社がAIでPlaywrightテストコードを生成するために調整したこと](https://zenn.dev/castingone_dev/articles/casone_playwright_for_claude)**  
-*ソース: Zenn*
-
-    AI を活用して Playwright のテストコードを生成するために、どのような調整を行ったかを技術的に詳述しています。
+    Claude Code の導入で開発速度は向上したものの、一方で作業の疲労度が増大したという実体験に基づくレポートです。
 
 ## はてなブックマーク
 
 | # | タイトル | ブックマーク数 |
 |---|---|---|
-| 1 | [E2Eテスト大全（あなたの知らない、E2Eテスト周辺の理論） - 若くない何かの悩み](https://blog.kuniwak.com/entry/e2ebok) | 537 |
+| 1 | [E2Eテスト大全（あなたの知らない、E2Eテスト周辺の理論） - 若くない何かの悩み](https://blog.kuniwak.com/entry/e2ebok) | 555 |
 | 2 | [HonoがPRを閉じた理由](https://slides.yusu.ke/foss4g-2026) | 119 |
-| 3 | [バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415) | 73 |
+| 3 | [バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415) | 74 |
 | 4 | [npm ci 時に常に npm audit signatures をする - プププなテクブ](https://blog.inorinrinrin.com/entry/dd84836d-72cc-2616-9c64-45a9ac6c425b) | 30 |
 
 ---
 
 ## Zenn
 
-| # | タイトル |
-|---|---|
-| 1 | [Radeon VIIとUbuntu 26.04でROCmを動かし、Flash-NextをOpenCodeにつないだ](https://zenn.dev/masanork/articles/radeon-vii-rocm-strata-opencode) |
-| 2 | [ADRをregoでlintする](https://zenn.dev/babarot/articles/regomark-adr-checker) |
-| 3 | [バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415) |
-| 4 | [AIが書く「読みづらいADR」に発狂しかけたので、ADRのガイドラインを作った](https://zenn.dev/tokium_dev/articles/adr-authoring-guideline) |
-| 5 | [弊社がAIでPlaywrightテストコードを生成するために調整したこと](https://zenn.dev/castingone_dev/articles/casone_playwright_for_claude) |
-| 6 | [Agent DX 〜 AI時代にフレームワークHonoは必要か](https://zenn.dev/yusukebe/articles/3d3dc6605ca1b1) |
-| 7 | [日本の全法令を git の履歴にしてみた](https://zenn.dev/koheiwada/articles/houritsu-japanese-laws-as-git) |
-| 8 | [3 人それぞれの Claude Code を Slack でつないで ISUCON2026 に参加した（207,039 点）](https://zenn.dev/kauche/articles/f3736c660aab77) |
-| 9 | [GitHub Actions で checkout@v7 のようなバージョン指定を書くのはやめよう！ 時代は actions.lock！](https://zenn.dev/progate/articles/24b1140180300c) |
+| # | タイトル | いいね数 |
+|---|---|---|
+| 1 | [ADRをregoでlintする](https://zenn.dev/babarot/articles/regomark-adr-checker) | 38 |
+| 2 | [バイブコーディングで機能を継ぎ足していて見えてきたClaudeCodeの実装のクセ](https://zenn.dev/uguisu_blog/articles/45d1f446ece415) | 36 |
+| 3 | [OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest) | 35 |
+| 4 | [コードを読まずにバイブコーディングしたら、Claude Codeは分かっていてスルーしていた](https://zenn.dev/nexta_/articles/42a828ca2b8a02) | 16 |
+| 5 | [弊社がAIでPlaywrightテストコードを生成するために調整したこと](https://zenn.dev/castingone_dev/articles/casone_playwright_for_claude) | 12 |
+| 6 | [Radeon VIIとUbuntu 26.04でROCmを動かし、Flash-NextをOpenCodeにつないだ](https://zenn.dev/masanork/articles/radeon-vii-rocm-strata-opencode) | 4 |
+| 7 | [AIエージェントのMCP承認。許可リストに無いツールは承認なしだった](https://zenn.dev/kazu_aiengineer/articles/agent-framework-mcp-default-approval) | 1 |
+| 8 | [YouTube API の uploadLimitExceeded は24時間10本で出た。非公開の固定はなし](https://zenn.dev/ai_hacchu/articles/youtube-data-api-upload-limit-private-lock) | 1 |
+| 9 | [Obsidian LiveSyncでプラグインも同期する方法](https://zenn.dev/myzennnotes/articles/691ac447084cf6) | 0 |
+| 10 | [個人開発のモノレポ。iOS と Web と API を 1 つのリポジトリで育てて Cloudflare Workers に配備する](https://zenn.dev/honeymarron/articles/oshitecho-monorepo-ios-web-api-cloudflare) | 0 |
 
 ---
 
@@ -101,13 +102,16 @@ createdDate: "20261104203653"
 
 | # | リポジトリ |
 |---|---|
-| 1 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) |
-| 2 | [vercel-labs/agent-desktop](https://github.com/vercel-labs/agent-desktop) |
-| 3 | [max-sixty/worktrunk](https://github.com/max-sixty/worktrunk) |
-| 4 | [mattpocock/skills](https://github.com/mattpocock/skills) |
-| 5 | [floci-io/floci](https://github.com/floci-io/floci) |
-| 6 | [Usagi-org/ai-goofish-monitor](https://github.com/Usagi-org/ai-goofish-monitor) |
-| 7 | [Donchitos/Claude-Code-Game-Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) |
+| 1 | [NVIDIA/auto-ontology](https://github.com/NVIDIA/auto-ontology) |
+| 2 | [max-sixty/worktrunk](https://github.com/max-sixty/worktrunk) |
+| 3 | [mattpocock/skills](https://github.com/mattpocock/skills) |
+| 4 | [floci-io/floci](https://github.com/floci-io/floci) |
+| 5 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) |
+| 6 | [vercel-labs/agent-desktop](https://github.com/vercel-labs/agent-desktop) |
+| 7 | [github/spec-kit](https://github.com/github/spec-kit) |
+| 8 | [The-PR-Agent/pr-agent](https://github.com/The-PR-Agent/pr-agent) |
+| 9 | [garrytan/gstack](https://github.com/garrytan/gstack) |
+| 10 | [scenario-labs/skills](https://github.com/scenario-labs/skills) |
 
 ---
 
@@ -116,11 +120,11 @@ createdDate: "20261104203653"
 
 | # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
-| 1 | Ask HN | [OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757) | 487 | 146 |
-| 2 | Show HN | [Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352) | 73 | 24 |
-| 3 | Show HN | [Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468) | 41 | 4 |
-| 4 | Ask HN | [Tell HN: Gemini trains on chat history, even for subscribers \(personal accounts\)](https://news.ycombinator.com/item?id=50363461) | 33 | 8 |
-| 5 | Ask HN | [Tell HN: GitHub Is Down](https://news.ycombinator.com/item?id=50363274) | 25 | 12 |
+| 1 | Ask HN | [OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757) | 492 | 148 |
+| 2 | Ask HN | [Tell HN: Gemini trains on chat history, even for subscribers \(personal accounts\)](https://news.ycombinator.com/item?id=50363461) | 117 | 35 |
+| 3 | Show HN | [Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352) | 83 | 41 |
+| 4 | Show HN | [Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468) | 41 | 4 |
+| 5 | Ask HN | [Tell HN: GitHub Is Down](https://news.ycombinator.com/item?id=50363274) | 27 | 13 |
 | 6 | Ask HN | [Tell HN: You now need a government id in order to create an Anthropic account](https://news.ycombinator.com/item?id=50356209) | 17 | 6 |
 | 7 | Ask HN | [Ask HN: What is Google Flights&#x27; business model and has it changed recently?](https://news.ycombinator.com/item?id=50358924) | 7 | 4 |
 | 8 | Ask HN | [Can the Cloudflare employee that just blocked Route53 Health Checks undo it](https://news.ycombinator.com/item?id=50354813) | 7 | 3 |
@@ -143,8 +147,8 @@ createdDate: "20261104203653"
 | 7 | r/ClaudeAI | [Anthropic Blocking Reverse Engineer Anything](https://www.reddit.com/r/ClaudeAI/comments/1xn2iq3/anthropic_blocking_reverse_engineer_anything/) |
 | 8 | r/OpenAI | [Sorry, my agents accidentally did it](https://www.reddit.com/r/OpenAI/comments/1xmx22x/sorry_my_agents_accidentally_did_it/) |
 | 9 | r/GeminiAI | [I Like how easy it is to juse search for information today](https://www.reddit.com/r/GeminiAI/comments/1xn7qin/i_like_how_easy_it_is_to_juse_search_for/) |
-| 10 | r/ClaudeAI | [I gave Claude ~700 ransomware encrypted files. It told me upfront it couldn&#x27;t decrypt them, then got two thirds of them usable again](https://www.reddit.com/r/ClaudeAI/comments/1xn6tu3/i_gave_claude_700_ransomware_encrypted_files_it/) |
+| 10 | r/ClaudeAI | [From a notebook sketch to an animated Godot boss — 3D AI + Opus 5.5](https://www.reddit.com/r/ClaudeAI/comments/1xn7jti/from_a_notebook_sketch_to_an_animated_godot_boss/) |
 
 ---
 
-*取得日時: 2026-11-04 20:36:53 JST*
+*取得日時: 2026-11-04 21:43:34 JST*
