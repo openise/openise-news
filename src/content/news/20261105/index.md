@@ -1,65 +1,66 @@
 ---
 title: "2026 年 11 月 05 日（木）"
-createdDate: "20261105075458"
+createdDate: "20261105082604"
 ---
 
 ## 今日のピックアップ
 
 1. **[OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757)**  
-*ソース: Hacker News — 517 points*
+*ソース: Hacker News — 518 points*
 
-   OpenAI が Codex のチャット内容を用いたモデル学習を密かに再開している可能性について報じています。
+   OpenAI が Codex のチャット内容を用いたモデル学習を、密かに再開している可能性があるという指摘です。
 
-2. **[max-sixty/worktrunk](https://github.com/max-sixty/worktrunk)**  
+2. **[OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest)**  
+*ソース: はてなブックマーク — 99 users*
+
+   OpenCode、Docker、GitHub Actions を組み合わせて、AI によるペネトレーションテストを全自動化する試みを紹介しています。
+
+3. **[max-sixty/worktrunk](https://github.com/max-sixty/worktrunk)**  
 *ソース: GitHub Trending — 524 stars today*
 
-   GitHub Trending で 500 star 以上を獲得している注目プロジェクトです。
+   GitHub Trending で急上昇している worktrunk についてのトピックです。
 
-3. **[FareedKhan-dev/kimi-k3-in-c](https://github.com/FareedKhan-dev/kimi-k3-in-c)**  
+4. **[FareedKhan-dev/kimi-k3-in-c](https://github.com/FareedKhan-dev/kimi-k3-in-c)**  
 *ソース: GitHub Trending — 351 stars today*
 
-   Kimi-K3-in-C に関する、非常に高い関心を集めている GitHub リポジトリです。
+   GitHub Trending で注目を集めている、Kimi-K3 を C 言語で実装したプロジェクトです。
 
-4. **[garrytan/gstack](https://github.com/garrytan/gstack)**  
+5. **[garrytan/gstack](https://github.com/garrytan/gstack)**  
 *ソース: GitHub Trending — 285 stars today*
 
-   GitHub Trending で高いスターを獲得している注目のリポジトリです。
-
-5. **[Kimi-K3.1-Pro is now open-weights](https://www.reddit.com/r/LocalLLaMA/comments/1xnrhvb/kimik31pro_is_now_openweights/)**  
-*ソース: Reddit*
-
-   Kimi-K3.1-Pro がオープンウェイトとして公開されたことが話題になっています。
+   GitHub Trending で高いスターを獲得している gstack に関するプロジェクトです。
 
 6. **[Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352)**  
 *ソース: Hacker News — 121 points*
 
-   嘘をつく LLM の容疑者を尋問する、独創的な探偵ゲームが発表されました。
+   嘘をつく LLM の容疑者を問い詰める、探偵ゲームの開発報告です。
 
-7. **[Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9)**  
+7. **[GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html)**  
+*ソース: はてなブックマーク — 6 users*
+
+   GitHub Octoverse 2026 により、TypeScript が 2 年連続で最も使われている言語であり、Rust のプルリク増加率が高いことが示されています。
+
+8. **[Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9)**  
 *ソース: Qiita*
 
-   Claude Code で複数のモデルを使い分ける高度な運用手法が紹介されています。
+   Claude Code において、モデルを Opus、Fable、Sonnet で自動的に使い分ける手法の有用性を解説しています。
 
-8. **[【脆弱性ラッシュ】PHP2Shell・Brotli\(HTTP2Shell\)・Node・Chrome・Goが同時に来た週に、サーバーの「放置」が露呈した話](https://qiita.com/ysmreg1/items/d9f14d2da0ad57303036)**  
-*ソース: Qiita*
+9. **[Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468)**  
+*ソース: Hacker News — 41 points*
 
-   PHP や Node.js など、複数の脆弱性が重なった際のサーバー運用の重要性を説いています。
+   RLHF、Attention、LoRA、LLM 評価に関するインタラクティブなノートです。
 
-9. **[GitHubのruleset移行時に注意したい、environment secretのブランチ保護仕様](https://zenn.dev/loglass/articles/a89a8d4ee86559)**  
-*ソース: Zenn — 12 likes*
+10. **[Show HN: I built a little browser game to practice Vim commands](https://news.ycombinator.com/item?id=50347552)**  
+*ソース: Hacker News — 70 points*
 
-   GitHub の ruleset 移行時に発生しがちな、environment secret の仕様に関する注意点です。
-
-10. **[Claude CodeからPremiere Proを290回動かして、53分のPodcastを全自動編集してみた](https://zenn.dev/salt2/articles/2b6e403e059b10)**  
-*ソース: Zenn — 0 likes*
-
-    Claude Code を用いて Premiere Pro を操作し、Podcast の編集を自動化した実験的な試みです。
+    Vim コマンドを練習するための、小さなブラウザゲームの公開です。
 
 ## はてなブックマーク
 
 | # | タイトル | BM |
 |---|---|---|
-| — | (該当なし) | — |
+| 1 | [OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest) | 99 |
+| 2 | [GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html) | 6 |
 
 ---
 
@@ -68,7 +69,7 @@ createdDate: "20261105075458"
 | # | タイトル | いいね |
 |---|---|---|
 | 1 | [GitHubのruleset移行時に注意したい、environment secretのブランチ保護仕様](https://zenn.dev/loglass/articles/a89a8d4ee86559) | 12 |
-| 2 | [Claude Code を島で30時間遊ばせたら、やさしい世界が爆誕した ― 『Is this machine playing?』](https://zenn.dev/moimoi/articles/claudecode-agents-play-3d-island) | 1 |
+| 2 | [Claude Code を島で30時間遊ばせたら、やさしい世界が爆誕した ― 『Is this machine playing?』](https://zenn.dev/moimoi/articles/claudecode-agents-play-3d-island) | 2 |
 | 3 | [C/Rust/Julia/Go/Java/JS/PyPy/LuaJIT 実行速度ベンチマーク ― 競プロと科学計算のあいだ](https://zenn.dev/trbx304/articles/34fec79781e39c) | 0 |
 | 4 | [DeepSeek Harnessのagent loopは本当に差し替え可能か、patchで壊してみた](https://zenn.dev/mskbhd/articles/lab-316-deepseek-harness-agentloop-pat) | 0 |
 | 5 | [Claude CodeからPremiere Proを290回動かして、53分のPodcastを全自動編集してみた](https://zenn.dev/salt2/articles/2b6e403e059b10) | 0 |
@@ -109,7 +110,7 @@ createdDate: "20261105075458"
 
 | # | タイトル | Points |
 |---|---|---|
-| 1 | [OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757) | 517 |
+| 1 | [OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757) | 518 |
 | 2 | [Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352) | 121 |
 | 3 | [Show HN: I built a little browser game to practice Vim commands](https://news.ycombinator.com/item?id=50347552) | 70 |
 | 4 | [Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468) | 41 |
@@ -128,16 +129,16 @@ createdDate: "20261105075458"
 | # | タイトル |
 |---|---|
 | 1 | [Kimi-K3.1-Pro is now open-weights](https://www.reddit.com/r/LocalLLaMA/comments/1xnrhvb/kimik31pro_is_now_openweights/) |
-| 2 | [Goldman Sachs restricted Claude Code to engineers only](https://www.reddit.com/r/ClaudeCode/comments/1xn82hc/goldman_sachs_restricted_claude_code_to_engineers/) |
-| 3 | [I have an ominous feeling that they will take this technology away from us](https://www.reddit.com/r/ClaudeCode/comments/1xnpluu/i_have_an_ominous_feeling_that_they_will_take/) |
-| 4 | [Introducing Hy4 \(open weights soon\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnhzbz/introducing_hy4_open_weights_soon/) |
-| 5 | [Axion1-0/Axion-1.0-35B · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnjiu4/axion10axion1035b_hugging_face/) |
+| 2 | [I have an ominous feeling that they will take this technology away from us](https://www.reddit.com/r/ClaudeCode/comments/1xnpluu/i_have_an_ominous_feeling_that_they_will_take/) |
+| 3 | [Introducing Hy4 \(open weights soon\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnhzbz/introducing_hy4_open_weights_soon/) |
+| 4 | [Axion1-0/Axion-1.0-35B · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnjiu4/axion10axion1035b_hugging_face/) |
+| 5 | [ricursiveAI/Ripple-65B-Preview · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnx3cs/ricursiveairipple65bpreview_hugging_face/) |
 | 6 | [Unsloth Qwen3.8-Flash-Next GGUFs V3.1 Update \(November 4th 2026\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnuva2/unsloth_qwen38flashnext_ggufs_v31_update_november/) |
-| 7 | [ricursiveAI/Ripple-65B-Preview · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnx3cs/ricursiveairipple65bpreview_hugging_face/) |
-| 8 | [B70 Price Increase Incoming --&gt; Intel Might Discontinue the Arc B580 to Prioritize Higher-Margin Arc Pro Cards](https://www.reddit.com/r/LocalLLaMA/comments/1xnfzky/b70_price_increase_incoming_intel_might/) |
+| 7 | [B70 Price Increase Incoming --&gt; Intel Might Discontinue the Arc B580 to Prioritize Higher-Margin Arc Pro Cards](https://www.reddit.com/r/LocalLLaMA/comments/1xnfzky/b70_price_increase_incoming_intel_might/) |
+| 8 | [Thoughts on Revolut switching default coding AI from Claude Code / Codex to self-hosted GLM-5.3?](https://www.reddit.com/r/ClaudeCode/comments/1xn8owx/thoughts_on_revolut_switching_default_coding_ai/) |
 | 9 | [Are we reaching a point where reviewing code takes longer than writing it?](https://www.reddit.com/r/ChatGPTCoding/comments/1xnt7e9/are_we_reaching_a_point_where_reviewing_code/) |
 | 10 | [Four days with Codex and I genuinely can&#x27;t believe how bad this experience has been](https://www.reddit.com/r/ChatGPTCoding/comments/1xnlgqm/four_days_with_codex_and_i_genuinely_cant_believe/) |
 
 ---
 
-*取得日時: 2026-11-05 07:54:58 JST*
+*取得日時: 2026-11-05 08:26:04 JST*
