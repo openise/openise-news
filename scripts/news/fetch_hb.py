@@ -156,7 +156,7 @@ def to_markdown(entries: list[dict], category_label: str, category: str = "it") 
         "",
         "---",
         "",
-        "| 番号 | タイトル | ブックマーク数 |",
+        "| # | タイトル | ブックマーク数 |",
         "|---|---|---|",
     ]
 

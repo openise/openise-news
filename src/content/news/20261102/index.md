@@ -63,7 +63,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ## はてなブックマーク
 
-| 番号 | タイトル | ブックマーク数 |
+| # | タイトル | ブックマーク数 |
 |---|---|---|
 | 1 | [AIにありがちな「イマイチなコードコメント」9パターン - Qiita](https://qiita.com/jnchito/items/636c519c0b1d347c79b7) | 65 |
 | 2 | [AI時代、人間の音楽著作権どう守る　JASRACが生成曲の検知へ（朝日新聞） - Yahoo!ニュース](https://news.yahoo.co.jp/articles/85e366919356c7205191379528eead81a9a45f97) | 16 |
@@ -83,7 +83,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
-| 番号 | 種別 | タイトル | Points | Comments |
+| # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
 | 1 | Show HN | [Show HN: OmniDiff – Opensource, super fast, content aware Git difftool, in Rust](https://news.ycombinator.com/item?id=50325253) | 163 | 41 |
 | 2 | Ask HN | [Anthropic&#x27;s Mythos-class model allegedly leaked on Hugging Face](https://news.ycombinator.com/item?id=50326727) | 45 | 46 |
@@ -104,7 +104,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
-| 番号 | サブレディット | タイトル |
+| # | サブレディット | タイトル |
 |---|---|---|
 | 1 | r/ClaudeAI | [Anthropic&#x27;s Mythos-class model allegedly leaked on Hugging Face 💀](https://www.reddit.com/r/ClaudeAI/comments/1xl47f5/anthropics_mythosclass_model_allegedly_leaked_on/) |
 | 2 | r/OpenAI | [Sam Altman is right](https://www.reddit.com/r/OpenAI/comments/1xlen1c/sam_altman_is_right/) |
@@ -124,7 +124,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ## GitHub Trending
 
-| 番号 | リポジトリ |
+| # | リポジトリ |
 |---|---|
 | 1 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) |
 | 2 | [lightpanda-io/browser](https://github.com/lightpanda-io/browser) |
@@ -140,7 +140,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ## Qiita
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [AIにありがちな「イマイチなコードコメント」9パターン](https://qiita.com/jnchito/items/636c519c0b1d347c79b7?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 | 2 | [AIに証明を書かせてセキュアに開発する言語 Tauto をリリースしました！](https://qiita.com/ryo33/items/3a1a9d1ba2b289b23244?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
@@ -159,7 +159,7 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ## Zenn
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [3 人それぞれの Claude Code を Slack でつないで ISUCON2026 に参加した（207,039 点）](https://zenn.dev/kauche/articles/f3736c660aab77) |
 | 2 | [ISUCON2026に人間1人＋AIエージェント軍団で出て19.6万点、ループは閉じたけど中身が弱かった反省文😇](https://zenn.dev/tak848/articles/20261031-isucon2026-writeup) |

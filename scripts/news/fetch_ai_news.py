@@ -82,7 +82,7 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     lines = [
         HB_HEADING,
         "",
-        "| 番号 | タイトル | ブックマーク数 |",
+        "| # | タイトル | ブックマーク数 |",
         "|---|---|---|",
     ]
     if filtered:
@@ -113,7 +113,7 @@ def hn_section(limit: int) -> list[str]:
         "## Hacker News",
         "*対象: Show HN + Ask HN の合算ランキング*",
         "",
-        "| 番号 | 種別 | タイトル | Points | Comments |",
+        "| # | 種別 | タイトル | Points | Comments |",
         "|---|---|---|---|---|",
     ]
     if ranked:
@@ -147,7 +147,7 @@ def reddit_section(limit: int, period: str) -> list[str]:
         "## Reddit",
         f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)} から均等に抽出*",
         "",
-        "| 番号 | サブレディット | タイトル |",
+        "| # | サブレディット | タイトル |",
         "|---|---|---|",
     ]
     if top:
@@ -166,7 +166,7 @@ def simple_table_section(heading: str, column: str, entries: list[dict]) -> list
     lines = [
         heading,
         "",
-        f"| 番号 | {column} |",
+        f"| # | {column} |",
         "|---|---|",
     ]
     if entries:

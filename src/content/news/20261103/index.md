@@ -59,7 +59,7 @@ createdDate: "20261103180143"
 
 ## はてなブックマーク
 
-| 番号 | タイトル | ブックマーク数 |
+| # | タイトル | ブックマーク数 |
 |---|---|---|
 | 1 | [Claude CodeやCodexが書いたコードを全部は読まずに自分で説明できるようにする4つの手順 - AIDB](https://ai-data-base.com/archives/139789) | 112 |
 | 2 | [キーエンス、PLC専用AIエージェント「KV Intelligence」を発売](https://www.keyence.co.jp/news-events/20261102-kv-intelligence.jsp) | 52 |
@@ -79,7 +79,7 @@ createdDate: "20261103180143"
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
 
-| 番号 | 種別 | タイトル | Points | Comments |
+| # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
 | 1 | Ask HN | [Ask HN: What hardware are you using to run local LLMs?](https://news.ycombinator.com/item?id=50337431) | 45 | 40 |
 | 2 | Show HN | [Show HN: The Public Eye – Agentic search for congressional bill legibility](https://news.ycombinator.com/item?id=50337363) | 7 | 0 |
@@ -100,7 +100,7 @@ createdDate: "20261103180143"
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
-| 番号 | サブレディット | タイトル |
+| # | サブレディット | タイトル |
 |---|---|---|
 | 1 | r/ClaudeAI | [Anthropic confirms new Claude Code limits to prevent game cloning](https://www.reddit.com/r/ClaudeAI/comments/1xm5vdp/anthropic_confirms_new_claude_code_limits_to/) |
 | 2 | r/OpenAI | [How To Trap Sam Altman](https://www.reddit.com/r/OpenAI/comments/1xlvrzj/how_to_trap_sam_altman/) |
@@ -120,7 +120,7 @@ createdDate: "20261103180143"
 
 ## GitHub Trending
 
-| 番号 | リポジトリ |
+| # | リポジトリ |
 |---|---|
 | 1 | [vercel-labs/agent-desktop](https://github.com/vercel-labs/agent-desktop) |
 | 2 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) |
@@ -137,7 +137,7 @@ createdDate: "20261103180143"
 
 ## Qiita
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [【未来を解説】AIでエンジニア格差を生み出す質とスピードの考え方](https://qiita.com/Sicut_study/items/b9e38c0584d4aa720d31?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 | 2 | [APEXlangでVibe Coding：画面デザイン集](https://qiita.com/araidon/items/d38d616dce3b3e3109c0?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
@@ -156,7 +156,7 @@ createdDate: "20261103180143"
 
 ## Zenn
 
-| 番号 | タイトル |
+| # | タイトル |
 |---|---|
 | 1 | [GitHub Copilot App のサンドボックスで .NET アプリを開発するための設定を試してみた](https://zenn.dev/microsoft/articles/copilot-app-dotnet-windows-sandbox) |
 | 2 | [AIが書く「読みづらいADR」に発狂しかけたので、ADRのガイドラインを作った](https://zenn.dev/tokium_dev/articles/adr-authoring-guideline) |

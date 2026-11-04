@@ -289,7 +289,7 @@ _NOW = datetime(2026, 11, 4, 7, 0, tzinfo=constants.JST)
 
 def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
     _write_news(tmp_path, "20261103", (
-        "---\ntitle: x\n---\n## はてなブックマーク\n\n| 番号 | タイトル | ブックマーク数 |\n|---|---|---|\n"
+        "---\ntitle: x\n---\n## はてなブックマーク\n\n| # | タイトル | ブックマーク数 |\n|---|---|---|\n"
         "| 1 | [AI 昨日の記事](https://example.com/old) | 10 |\n"
     ))
     # frontmatter が無い News も読める
@@ -355,7 +355,7 @@ def test_github_trend_section_renders_repository_table():
     assert lines == [
         "## GitHub Trending",
         "",
-        "| 番号 | リポジトリ |",
+        "| # | リポジトリ |",
         "|---|---|",
         "| 1 | [awesome/repo](https://github.com/awesome/repo) |",
         "",
@@ -370,7 +370,7 @@ def test_qiita_section_renders_title_table():
     assert lines == [
         "## Qiita",
         "",
-        "| 番号 | タイトル |",
+        "| # | タイトル |",
         "|---|---|",
         "| 1 | [AI 記事](https://qiita.com/example/items/1) |",
         "",
@@ -385,7 +385,7 @@ def test_zenn_section_renders_title_table():
     assert lines == [
         "## Zenn",
         "",
-        "| 番号 | タイトル |",
+        "| # | タイトル |",
         "|---|---|",
         "| 1 | [AI 記事](https://zenn.dev/example/articles/1) |",
         "",
@@ -632,7 +632,7 @@ def test_github_trend_section_renders_repository_links():
     with patch("constants.urllib.request.urlopen", return_value=response):
         lines = fetch_ai_news.github_trend_section(1)
     assert lines == [
-        "## GitHub Trending", "", "| 番号 | リポジトリ |", "|---|---|",
+        "## GitHub Trending", "", "| # | リポジトリ |", "|---|---|",
         "| 1 | [example/tool](https://github.com/example/tool) |", "",
     ]
 
