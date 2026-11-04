@@ -365,32 +365,28 @@ def test_github_trend_section_renders_repository_table():
     assert lines == [
         "## GitHub Trending",
         "",
-        "| # | リポジトリ | 説明 | 今日のスター |",
-        "|---|---|---|---|",
-        "| 1 | [awesome/repo](https://github.com/awesome/repo) | AI agent toolkit | 1234 |",
+        "| # | リポジトリ | Star |",
+        "|---|---|---|",
+        "| 1 | [awesome/repo](https://github.com/awesome/repo) | 1234 |",
         "",
     ]
 
 
-def test_github_trend_section_escapes_description():
-    entries = [_repo("awesome/repo", "A | B [x](javascript:y) <script>\nnext", 5)]
+def test_github_trend_section_omits_description_column():
+    entries = [_repo("awesome/repo", "A | B <script>", 5)]
     with patch("fetch_github_trend.fetch_entries", return_value=entries):
         row = fetch_ai_news.github_trend_section(10)[4]
 
-    assert row == (
-        "| 1 | [awesome/repo](https://github.com/awesome/repo) "
-        "| A \\| B \\[x\\]\\(javascript:y\\) &lt;script&gt; next | 5 |"
-    )
-    # エスケープしていない | が無く、表の列数が変わらない
-    assert len(table_cells(row)) == 4
+    assert row == "| 1 | [awesome/repo](https://github.com/awesome/repo) | 5 |"
+    assert len(table_cells(row)) == 3
 
 
-def test_github_trend_section_keeps_columns_without_description_or_stars():
+def test_github_trend_section_keeps_columns_without_stars():
     with patch("fetch_github_trend.fetch_entries", return_value=[_repo("awesome/repo")]):
         row = fetch_ai_news.github_trend_section(10)[4]
 
-    assert row == "| 1 | [awesome/repo](https://github.com/awesome/repo) |  | — |"
-    assert len(table_cells(row)) == 4
+    assert row == "| 1 | [awesome/repo](https://github.com/awesome/repo) | — |"
+    assert len(table_cells(row)) == 3
 
 
 def table_cells(row):
@@ -486,7 +482,7 @@ def test_zenn_section_renders_title_and_likes_table():
     assert lines == [
         "## Zenn",
         "",
-        "| # | タイトル | いいね数 |",
+        "| # | タイトル | いいね |",
         "|---|---|---|",
         "| 1 | [AI 記事](https://zenn.dev/example/articles/1) | 120 |",
         "",
@@ -703,11 +699,7 @@ def test_build_markdown_completes_with_empty_reddit_title():
 # -------------------------
 
 def _fake_fetch_top_posts_multi(count: int):
-    """subreddit ごとに独立した投稿リストを持つ dict を返す stub を作る（統合 URL 取得の模擬）。
-
-    全サブレディットに同じ list を返すと、`p["subreddit"] = sub` の代入で
-    共有された dict が上書きされ、どの行がどのサブレディット由来か検証できなくなる。
-    """
+    """subreddit ごとに独立した投稿リストを持つ dict を返す stub を作る（統合 URL 取得の模擬）。"""
     def _fetch(subreddits, limit, period):
         return {
             sub: [
@@ -725,8 +717,8 @@ def test_reddit_section_limits_rows_to_requested_number():
         lines = fetch_ai_news.reddit_section(3, "day")
 
     body = "\n".join(lines)
-    assert "| 3 | r/" in body
-    assert "| 4 | r/" not in body
+    assert "| 3 | " in body
+    assert "| 4 | " not in body
 
 
 def test_reddit_section_includes_entries_from_every_subreddit():
@@ -735,8 +727,9 @@ def test_reddit_section_includes_entries_from_every_subreddit():
         lines = fetch_ai_news.reddit_section(6, "day")
 
     body = "\n".join(lines)
+    assert "| # | タイトル |" in body
     for subreddit in fetch_ai_news.fetch_reddit.AI_SUBREDDITS:
-        assert f"| r/{subreddit} |" in body
+        assert f"](https://reddit.com/{subreddit}/1) |" in body
 
 
 def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossposts():
@@ -756,7 +749,7 @@ def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossp
     assert "*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding から均等に抽出*" in body
     assert "Meme" not in body
     assert body.count("Same title") == 1
-    assert "| 2 | r/ChatGPTCoding | [Coding post](https://reddit.com/4) |" in body
+    assert "| 2 | [Coding post](https://reddit.com/4) |" in body
 
 
 # -------------------------
@@ -799,14 +792,14 @@ def test_github_trend_section_renders_repository_links():
     with patch("constants.urllib.request.urlopen", return_value=response):
         lines = fetch_ai_news.github_trend_section(1)
     assert lines == [
-        "## GitHub Trending", "", "| # | リポジトリ | 説明 | 今日のスター |", "|---|---|---|---|",
-        "| 1 | [example/tool](https://github.com/example/tool) | LLM assistant | 1234 |", "",
+        "## GitHub Trending", "", "| # | リポジトリ | Star |", "|---|---|---|",
+        "| 1 | [example/tool](https://github.com/example/tool) | 1234 |", "",
     ]
 
 
 def test_github_trend_section_keeps_empty_result_placeholder():
     with patch("fetch_github_trend.fetch_entries", return_value=[]):
-        assert "| — | (取得できませんでした) | — | — |" in fetch_ai_news.github_trend_section(1)
+        assert "| — | (取得できませんでした) | — |" in fetch_ai_news.github_trend_section(1)
 
 
 # -------------------------
@@ -837,36 +830,27 @@ def test_hn_section_describes_target_period():
     assert "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*" in lines
 
 
-@pytest.mark.parametrize(
-    ("title", "kind"),
-    [
-        ("Show HN: My Claude tool", "Show HN"),
-        ("Ask HN: How do you use Claude?", "Ask HN"),
-        ("Tell HN: Claude is down", "Tell HN"),
-        ("Claude usage limits changed", "その他"),
-    ],
-)
-def test_hn_section_labels_kind_by_title_prefix(title, kind):
-    hits = [{"title": title, "objectID": "1", "points": 10, "num_comments": 2}]
-    # ask_hn タグにも Tell HN や接頭辞なしの投稿が入るため、取得元のタグでは種別が決まらない
+def test_hn_section_renders_title_and_points_columns():
+    hits = [{"title": "Ask HN: How do you use Claude?", "objectID": "1", "points": 10, "num_comments": 2}]
     with patch("fetch_hn.fetch_hits_or_none", side_effect=[[], hits]):
         lines = fetch_ai_news.hn_section(10, HN_NOW)
 
-    assert f"| 1 | {kind} | [{title}](https://news.ycombinator.com/item?id=1) | 10 | 2 |" in lines
+    assert "| # | タイトル | Points |" in lines
+    assert "| 1 | [Ask HN: How do you use Claude?](https://news.ycombinator.com/item?id=1) | 10 |" in lines
 
 
 def test_hn_section_shows_fetch_failure_when_both_fetches_fail():
     with patch("fetch_hn.fetch_url", return_value=None):
         lines = fetch_ai_news.hn_section(10, HN_NOW)
 
-    assert "| — | — | (取得できませんでした) | — | — |" in lines
+    assert "| — | (取得できませんでした) | — |" in lines
 
 
 def test_hn_section_shows_no_match_when_fetch_succeeds_with_no_hits():
     with patch("fetch_hn.fetch_url", return_value=b'{"hits": []}'):
         lines = fetch_ai_news.hn_section(10, HN_NOW)
 
-    assert "| — | — | (該当なし) | — | — |" in lines
+    assert "| — | (該当なし) | — |" in lines
 
 
 def test_hn_section_uses_hits_from_successful_fetch_when_other_fails():
@@ -874,7 +858,7 @@ def test_hn_section_uses_hits_from_successful_fetch_when_other_fails():
     with patch("fetch_hn.fetch_hits_or_none", side_effect=[hits, None]):
         lines = fetch_ai_news.hn_section(10, HN_NOW)
 
-    assert "| 1 | Show HN | [Show HN: My Claude tool](https://news.ycombinator.com/item?id=1) | 5 | 0 |" in lines
+    assert "| 1 | [Show HN: My Claude tool](https://news.ycombinator.com/item?id=1) | 5 |" in lines
 
 
 def test_build_markdown_passes_its_now_to_hn_section():
