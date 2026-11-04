@@ -181,7 +181,7 @@ def test_hb_section_uses_word_boundary_filter():
         _entry("LLMs と AIエージェント", "https://example.com/3", 10),
         _entry("LLMs と AIエージェント", "https://example.com/4", 5),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(1))
     assert "Explain" not in body
     assert "Digital" not in body
@@ -193,7 +193,7 @@ def test_hb_section_keeps_only_titles_matching_ai_keywords():
         _entry("AI駆動開発の技術的負債について", "https://example.com/a", 10),
         _entry("Mac用ランチャーアプリの新機能", "https://example.com/b", 20),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
@@ -206,7 +206,7 @@ def test_hb_section_removes_duplicate_titles():
         _entry("AI記事タイトル", "https://a.example.com/1", 10),
         _entry("AI記事タイトル", "https://b.example.com/1", 5),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
@@ -217,7 +217,7 @@ def test_hb_section_escapes_script_in_title():
     entries = [
         _entry('<script>alert(1)</script> AI記事', "https://example.com/xss", 5),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
@@ -226,7 +226,7 @@ def test_hb_section_escapes_script_in_title():
 
 
 def test_hb_section_generates_output_when_source_returns_empty(capsys):
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=[]):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=[]):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
@@ -243,7 +243,7 @@ def test_hb_section_orders_rows_by_bookmark_count():
         _entry("AI b", "https://example.com/b", 143),
         _entry("AI c", "https://example.com/c", 47),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         rows = _hb_rows(fetch_ai_news.hb_section(10))
     assert rows == [
         "| 1 | [AI b](https://example.com/b) | 143 |",
@@ -258,7 +258,7 @@ def test_hb_section_keeps_source_order_for_same_bookmark_count():
         _entry("AI second", "https://example.com/2", 20),
         _entry("AI third", "https://example.com/3", 20),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         rows = _hb_rows(fetch_ai_news.hb_section(10))
     assert [r.split("](")[1].split(")")[0] for r in rows] == [
         "https://example.com/1", "https://example.com/2", "https://example.com/3",
@@ -271,7 +271,7 @@ def test_hb_section_takes_top_n_after_sorting():
         _entry("AI low2", "https://example.com/low2", 2),
         _entry("AI high", "https://example.com/high", 100),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(2))
     assert "https://example.com/high" in body
     assert "https://example.com/low2" in body
@@ -301,7 +301,7 @@ def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
         _entry("AI 7 日前の記事 (GitHub)", "https://example.com/a_(b)", 20),
         _entry("AI 新しい記事", "https://example.com/new", 10),
     ]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/old" not in body
     assert "7 日前の記事" not in body
@@ -311,7 +311,7 @@ def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
 def test_hb_section_fills_limit_after_exclusion(tmp_path):
     _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI 0](https://example.com/0) | 1 |\n")
     entries = [_entry(f"AI {i}", f"https://example.com/{i}", 1) for i in range(3)]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(2, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/0" not in body
     assert "https://example.com/1" in body
@@ -330,7 +330,7 @@ def test_recent_hb_urls_ignores_other_sections_and_old_news(tmp_path):
 
 def test_hb_section_outputs_without_past_news(tmp_path):
     entries = [_entry("AI 記事", "https://example.com/x", 1)]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/x" in body
 
@@ -338,7 +338,7 @@ def test_hb_section_outputs_without_past_news(tmp_path):
 def test_hb_section_shows_placeholder_when_all_entries_excluded(tmp_path):
     _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/x) | 1 |\n")
     entries = [_entry("AI 記事", "https://example.com/x", 1)]
-    with patch("fetch_hb.fetch_hotentry_tag_entries", return_value=entries):
+    with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "(該当なし)" in body
 
@@ -411,7 +411,7 @@ def test_zenn_section_escapes_script_in_title():
 
 def _build_markdown_with_empty_sources(limit: int) -> str:
     source_functions = [
-        "fetch_hb.fetch_hotentry_tag_entries",
+        "fetch_hb.fetch_entrylist_tag_entries",
         "fetch_hn.fetch_hits",
         "fetch_hn.filter_by_keywords",
         "fetch_github_trend.fetch_entries",
@@ -508,7 +508,7 @@ def test_build_markdown_completes_when_one_source_fails():
 
 def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
     source_functions = [
-        ("fetch_hb.fetch_hotentry_tag_entries", []),
+        ("fetch_hb.fetch_entrylist_tag_entries", []),
         ("fetch_hn.fetch_url", [b"\xff", b'{"hits": []}']),
         (
             "fetch_reddit.fetch_top_posts_multi",
@@ -538,7 +538,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
 def test_build_markdown_completes_with_empty_reddit_title():
     feed = b'<feed xmlns="http://www.w3.org/2005/Atom"><entry><category term="ClaudeAI"/><title/><link href="https://reddit.com/1"/></entry><entry><category term="ClaudeAI"/><title>Next post</title><link href="https://reddit.com/2"/></entry></feed>'
     source_functions = [
-        "fetch_hb.fetch_hotentry_tag_entries", "fetch_hn.fetch_hits",
+        "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits",
         "fetch_github_trend.fetch_entries", "fetch_qiita.fetch_entries", "fetch_zenn.fetch_entries",
     ]
     with ExitStack() as stack:

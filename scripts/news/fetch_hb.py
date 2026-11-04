@@ -99,7 +99,7 @@ def _parse_rss(xml_bytes: bytes, limit: int) -> list[dict]:
 
 
 # -------------------------
-# タグ別人気エントリー取得（HTML スクレイピング）
+# タグ別新着エントリー取得（HTML スクレイピング）
 # -------------------------
 
 _ENTRY_BLOCK_RE = re.compile(
@@ -109,15 +109,15 @@ _ENTRY_BLOCK_RE = re.compile(
 )
 
 
-def fetch_hotentry_tag_entries(category: str, tag: str, limit: int = 50) -> list[dict]:
+def fetch_entrylist_tag_entries(category: str, tag: str, limit: int = 50) -> list[dict]:
     """
-    はてなブックマーク 人気エントリー（カテゴリ × タグ）を取得する。
-    URL: https://b.hatena.ne.jp/hotentry/{category}/{tag}
+    はてなブックマーク 新着エントリー（カテゴリ × タグ）を取得する。
+    URL: https://b.hatena.ne.jp/entrylist/{category}/{tag}
     タグ別ページには RSS が存在しないため HTML をスクレイピングする。
     エラー時は空リストを返す。
     """
-    url = f"https://b.hatena.ne.jp/hotentry/{category}/{urllib.parse.quote(tag)}"
-    print(f"[INFO] タグ別人気エントリー取得中 ... {url}")
+    url = f"https://b.hatena.ne.jp/entrylist/{category}/{urllib.parse.quote(tag)}"
+    print(f"[INFO] タグ別新着エントリー取得中 ... {url}")
 
     _wait_for_crawl_delay()
     raw = fetch_url(url, user_agent="HatenaBookmarkFetcher/1.0", source_label="はてなブックマーク")
