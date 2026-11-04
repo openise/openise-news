@@ -143,18 +143,65 @@ def test_main_uses_jst_timestamp_in_default_output_path_under_non_jst_timezone(
 
 
 # -------------------------
-# fetch_hotentry_tag_entries: 非 UTF-8 応答
+# fetch_entrylist_tag_entries: 非 UTF-8 応答
 # -------------------------
 
-def test_fetch_hotentry_returns_empty_on_non_utf8_response(capsys):
+def test_fetch_entrylist_returns_empty_on_non_utf8_response(capsys):
     """非 UTF-8 のバイト列を受け取っても例外を送出せず、[WARN] を出して空リストを返す。"""
     with patch("fetch_hb._wait_for_crawl_delay"), \
             patch("fetch_hb.fetch_url", return_value=b"\xff\xfe invalid utf-8"):
-        result = fetch_hb.fetch_hotentry_tag_entries(category="it", tag="プログラミング")
+        result = fetch_hb.fetch_entrylist_tag_entries(category="it", tag="プログラミング")
 
     assert result == []
     stderr = capsys.readouterr().err
     assert "[WARN] はてなブックマーク" in stderr
+
+
+ENTRYLIST_HTML = """
+<h3 class="entrylist-contents-title">
+        <a href="https://example.com/articles/1?a=1&amp;b=2"
+           title="E2Eテスト大全 &amp; Rust 入門"
+           target="_blank" rel="noopener"
+           class="js-keyboard-openable"
+           data-gtm-click-label="entry-info-title">E2Eテスト大全 &amp; Rust 入門</a>
+      </h3>
+      <span class="entrylist-contents-users">
+        <a href="/entry/s/example.com/articles/1"
+           title="すべてのブックマークを見る"
+           class="js-keyboard-entry-page-openable"
+           data-gtm-click-label="entry-info-users"><span>284</span> users</a>
+      </span>
+<h3 class="entrylist-contents-title">
+        <a href="https://example.com/articles/2"
+           title="Claude Code の新機能"
+           target="_blank" rel="noopener">Claude Code の新機能</a>
+      </h3>
+      <span class="entrylist-contents-users">
+        <a href="/entry/s/example.com/articles/2"><span>4</span> users</a>
+      </span>
+"""
+
+
+def test_fetch_entrylist_requests_tag_entrylist_page():
+    with patch("fetch_hb._wait_for_crawl_delay") as wait, \
+            patch("fetch_hb.fetch_url", return_value=ENTRYLIST_HTML.encode("utf-8")) as fetch:
+        fetch_hb.fetch_entrylist_tag_entries(category="it", tag="プログラミング")
+
+    wait.assert_called_once()
+    assert fetch.call_args.args[0] == (
+        "https://b.hatena.ne.jp/entrylist/it/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0"
+    )
+
+
+def test_fetch_entrylist_parses_title_url_and_bookmark_count():
+    with patch("fetch_hb._wait_for_crawl_delay"), \
+            patch("fetch_hb.fetch_url", return_value=ENTRYLIST_HTML.encode("utf-8")):
+        entries = fetch_hb.fetch_entrylist_tag_entries(category="it", tag="プログラミング")
+
+    assert entries == [
+        {"title": "E2Eテスト大全 & Rust 入門", "url": "https://example.com/articles/1?a=1&b=2", "tags": [], "bookmark_count": 284},
+        {"title": "Claude Code の新機能", "url": "https://example.com/articles/2", "tags": [], "bookmark_count": 4},
+    ]
 
 
 # -------------------------

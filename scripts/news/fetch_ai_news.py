@@ -31,7 +31,7 @@ import fetch_zenn
 from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
 
 LIMIT = 10
-# タグ別人気エントリーのページには数日分の記事が並ぶため、それより長い期間を見て重複を除く
+# タグ別新着エントリーのページには数日分の記事が並ぶため、それより長い期間を見て重複を除く
 HB_HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
 
@@ -62,8 +62,8 @@ def recent_hb_urls(now: datetime, base_dir: str) -> set[str]:
 
 
 def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
-    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの人気エントリーから AI キーワード一致で抽出、重複記事と excluded_urls の記事は除外、ブックマーク数の多い順）"""
-    entries = fetch_hb.fetch_hotentry_tag_entries(category="it", tag="プログラミング", limit=50)
+    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの新着エントリーから AI キーワード一致で抽出、重複記事と excluded_urls の記事は除外、ブックマーク数の多い順）"""
+    entries = fetch_hb.fetch_entrylist_tag_entries(category="it", tag="プログラミング", limit=50)
 
     filtered = []
     seen_titles = set()
