@@ -244,3 +244,25 @@ def test_fetch_top_posts_multi_fills_excluded_slots_with_next_posts():
 
     assert [p["title"] for p in result["ClaudeCode"]] == ["post 2", "post 4"]
     assert [p["title"] for p in result["LocalLLaMA"]] == ["post 5", "post 6"]
+
+
+def test_fetch_top_posts_ranked_keeps_feed_order_across_subreddits():
+    raw = _atom_feed([
+        ("ClaudeCode", "post 1", "https://reddit.com/1"),
+        ("LocalLLaMA", "post 2", "https://reddit.com/2"),
+        ("ClaudeCode", "画像", "https://reddit.com/3", "https://i.redd.it/a.png"),
+        ("ClaudeCode", "post 4", "https://reddit.com/4"),
+        ("Other", "post 5", "https://reddit.com/5"),
+    ])
+
+    with patch("fetch_reddit.fetch_url", return_value=raw):
+        ranked = fetch_reddit.fetch_top_posts_ranked(["ClaudeCode", "LocalLLaMA"], limit=10, period="day")
+
+    assert [(sub, p["title"]) for sub, p in ranked] == [
+        ("ClaudeCode", "post 1"), ("LocalLLaMA", "post 2"), ("ClaudeCode", "post 4"),
+    ]
+
+
+def test_fetch_top_posts_ranked_returns_empty_list_when_rate_limited():
+    with patch("fetch_reddit.fetch_url", return_value=None):
+        assert fetch_reddit.fetch_top_posts_ranked(["ClaudeCode"], limit=10, period="day") == []

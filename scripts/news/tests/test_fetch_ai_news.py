@@ -564,10 +564,7 @@ def _build_markdown_with_empty_sources(limit: int) -> str:
     with ExitStack() as stack:
         for function in source_functions:
             stack.enter_context(patch(function, return_value=[]))
-        stack.enter_context(patch(
-            "fetch_reddit.fetch_top_posts_multi",
-            return_value={sub: [] for sub in fetch_ai_news.fetch_reddit.AI_SUBREDDITS},
-        ))
+        stack.enter_context(patch("fetch_reddit.fetch_top_posts_ranked", return_value=[]))
         return fetch_ai_news.build_markdown(
             limit, "day", datetime(2026, 8, 20, tzinfo=fetch_ai_news.JST)
         )
@@ -634,10 +631,7 @@ def test_build_markdown_completes_when_one_source_fails():
     with ExitStack() as stack:
         for function in source_functions:
             stack.enter_context(patch(function, return_value=[]))
-        stack.enter_context(patch(
-            "fetch_reddit.fetch_top_posts_multi",
-            return_value={sub: [] for sub in fetch_ai_news.fetch_reddit.AI_SUBREDDITS},
-        ))
+        stack.enter_context(patch("fetch_reddit.fetch_top_posts_ranked", return_value=[]))
         stack.enter_context(patch("fetch_hb._wait_for_crawl_delay"))
         stack.enter_context(patch("fetch_hb.fetch_url", return_value=b"\xff\xfe invalid utf-8"))
         markdown = fetch_ai_news.build_markdown(
@@ -653,10 +647,7 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
     source_functions = [
         ("fetch_hb.fetch_entrylist_tag_entries", []),
         ("fetch_hn.fetch_url", [b"\xff", b'{"hits": []}']),
-        (
-            "fetch_reddit.fetch_top_posts_multi",
-            {sub: [] for sub in fetch_ai_news.fetch_reddit.AI_SUBREDDITS},
-        ),
+        ("fetch_reddit.fetch_top_posts_ranked", []),
         ("fetch_github_trend.fetch_entries", []),
         ("fetch_qiita.fetch_entries", []),
         (
@@ -698,22 +689,24 @@ def test_build_markdown_completes_with_empty_reddit_title():
 # reddit_section
 # -------------------------
 
-def _fake_fetch_top_posts_multi(count: int):
-    """subreddit ごとに独立した投稿リストを持つ dict を返す stub を作る（統合 URL 取得の模擬）。"""
-    def _fetch(subreddits, limit, period):
-        return {
-            sub: [
-                {"title": f"AI post {sub} {i}", "url": f"https://reddit.com/{sub}/{i}"}
-                for i in range(1, count + 1)
-            ]
-            for sub in subreddits
-        }
+def _ranked(*rows: tuple[str, int]) -> list[tuple[str, dict]]:
+    """(subreddit, 番号) の並びから、fetch_top_posts_ranked の戻り値（フィードの順）を作る。"""
+    return [
+        (sub, {"title": f"AI post {sub} {i}", "url": f"https://reddit.com/{sub}/{i}"})
+        for sub, i in rows
+    ]
 
-    return _fetch
+
+def _reddit_urls(lines: list[str]) -> list[str]:
+    return re.findall(r"\]\((https://reddit\.com/[^)]+)\) \|", "\n".join(lines))
+
+
+def _ranked_round_robin(count: int) -> list[tuple[str, dict]]:
+    return _ranked(*[(sub, i) for i in range(1, count + 1) for sub in fetch_ai_news.fetch_reddit.AI_SUBREDDITS])
 
 
 def test_reddit_section_limits_rows_to_requested_number():
-    with patch("fetch_reddit.fetch_top_posts_multi", side_effect=_fake_fetch_top_posts_multi(12)):
+    with patch("fetch_reddit.fetch_top_posts_ranked", return_value=_ranked_round_robin(12)):
         lines = fetch_ai_news.reddit_section(3, "day")
 
     body = "\n".join(lines)
@@ -722,14 +715,63 @@ def test_reddit_section_limits_rows_to_requested_number():
 
 
 def test_reddit_section_includes_entries_from_every_subreddit():
-    """先頭の subreddit が limit 件返しても、後続の subreddit の記事が載る。"""
-    with patch("fetch_reddit.fetch_top_posts_multi", side_effect=_fake_fetch_top_posts_multi(12)):
+    """先頭の subreddit がフィードの上位を占めても、後続の subreddit の記事が載る。"""
+    ranked = _ranked(*[("ClaudeCode", i) for i in range(1, 13)], ("LocalLLaMA", 1), ("ChatGPTCoding", 1))
+    with patch("fetch_reddit.fetch_top_posts_ranked", return_value=ranked):
         lines = fetch_ai_news.reddit_section(6, "day")
 
     body = "\n".join(lines)
     assert "| # | タイトル |" in body
     for subreddit in fetch_ai_news.fetch_reddit.AI_SUBREDDITS:
         assert f"](https://reddit.com/{subreddit}/1) |" in body
+
+
+def test_reddit_section_keeps_top_two_of_each_subreddit_and_fills_rest_in_feed_order():
+    ranked = _ranked(
+        ("ClaudeCode", 1), ("ClaudeCode", 2), ("ClaudeCode", 3), ("LocalLLaMA", 1),
+        ("ClaudeCode", 4), ("ClaudeCode", 5), ("LocalLLaMA", 2), ("ClaudeCode", 6),
+        ("LocalLLaMA", 3), ("ChatGPTCoding", 1), ("ChatGPTCoding", 2), ("ClaudeCode", 7),
+    )
+    with patch("fetch_reddit.fetch_top_posts_ranked", return_value=ranked):
+        lines = fetch_ai_news.reddit_section(8, "day")
+
+    # 各サブレディットの上位 2 件（6 件）を確保し、残り 2 枠はフィードの順で ClaudeCode 3・4 が入る。
+    # 表はフィードの順に並ぶ
+    assert _reddit_urls(lines) == [
+        f"https://reddit.com/{sub}/{i}"
+        for sub, i in [
+            ("ClaudeCode", 1), ("ClaudeCode", 2), ("ClaudeCode", 3), ("LocalLLaMA", 1),
+            ("ClaudeCode", 4), ("LocalLLaMA", 2), ("ChatGPTCoding", 1), ("ChatGPTCoding", 2),
+        ]
+    ]
+
+
+def test_reddit_section_fills_up_to_limit_when_a_subreddit_has_few_posts():
+    ranked = _ranked(
+        ("ClaudeCode", 1), ("LocalLLaMA", 1), ("ClaudeCode", 2), ("ClaudeCode", 3),
+        ("LocalLLaMA", 2), ("ClaudeCode", 4), ("LocalLLaMA", 3), ("ChatGPTCoding", 1),
+        ("ClaudeCode", 5), ("LocalLLaMA", 4), ("ClaudeCode", 6),
+    )
+    with patch("fetch_reddit.fetch_top_posts_ranked", return_value=ranked):
+        lines = fetch_ai_news.reddit_section(10, "day")
+
+    urls = _reddit_urls(lines)
+    assert len(urls) == 10
+    assert "https://reddit.com/ChatGPTCoding/1" in urls
+    # 選ばれなかったのは、フィードの最後の 1 件だけ
+    assert "https://reddit.com/ClaudeCode/6" not in urls
+
+
+def test_reddit_section_prefers_first_post_of_every_subreddit_when_limit_is_small():
+    ranked = _ranked(
+        ("ClaudeCode", 1), ("ClaudeCode", 2), ("LocalLLaMA", 1), ("LocalLLaMA", 2), ("ChatGPTCoding", 1),
+    )
+    with patch("fetch_reddit.fetch_top_posts_ranked", return_value=ranked):
+        lines = fetch_ai_news.reddit_section(3, "day")
+
+    assert _reddit_urls(lines) == [
+        "https://reddit.com/ClaudeCode/1", "https://reddit.com/LocalLLaMA/1", "https://reddit.com/ChatGPTCoding/1",
+    ]
 
 
 def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossposts():
@@ -746,7 +788,7 @@ def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossp
     with patch("fetch_reddit.fetch_url", return_value=feed):
         body = "\n".join(fetch_ai_news.reddit_section(10, "day"))
 
-    assert "*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding から均等に抽出*" in body
+    assert "*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding（スコア順。各サブレディットから 2 件以上）*" in body
     assert "Meme" not in body
     assert body.count("Same title") == 1
     assert "| 2 | [Coding post](https://reddit.com/4) |" in body

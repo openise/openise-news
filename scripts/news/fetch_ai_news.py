@@ -14,7 +14,6 @@ import os
 import re
 import tempfile
 from datetime import datetime, timedelta
-from itertools import zip_longest
 from pathlib import Path
 import argparse
 
@@ -37,6 +36,7 @@ HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
 ZENN_HEADING = "## Zenn"
 QIITA_HEADING = "## Qiita"
+REDDIT_MIN_POSTS_PER_SUBREDDIT = 2
 
 # render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
 _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
@@ -138,18 +138,26 @@ def hn_section(limit: int, now: datetime) -> list[str]:
 
 
 def reddit_section(limit: int, period: str) -> list[str]:
-    """Reddit AI 関連サブレディット ピックアップ（RSS フィード経由、サブレディットごとに均等割り）"""
-    posts_by_subreddit_dict = fetch_reddit.fetch_top_posts_multi(fetch_reddit.AI_SUBREDDITS, limit, period)
-    posts_by_subreddit = [posts_by_subreddit_dict[sub] for sub in fetch_reddit.AI_SUBREDDITS]
+    """Reddit AI 関連サブレディット ピックアップ（RSS フィード経由、スコア順。各サブレディットに最低件数を確保）"""
+    ranked = fetch_reddit.fetch_top_posts_ranked(fetch_reddit.AI_SUBREDDITS, limit, period)
 
-    # サブレディットを 1 件ずつ巡回して拾う。単純連結だと先頭のサブレディットが
-    # limit 件の枠を占有し、後続のサブレディットが 1 件も載らなくなるため。
-    interleaved = [p for row in zip_longest(*posts_by_subreddit) for p in row if p is not None]
-    top = interleaved[:limit]
+    # スコア順だけで選ぶと、勢いのあるサブレディットが枠を占めてほかが 1 件も載らなく
+    # なるため、各サブレディットの上位 REDDIT_MIN_POSTS_PER_SUBREDDIT 件を先に選ぶ。
+    # 1 件目同士・2 件目同士を先に比べるので、limit が小さくても全サブレディットの
+    # 1 件目が 2 件目より優先される
+    rank_in_subreddit = {sub: 0 for sub in fetch_reddit.AI_SUBREDDITS}
+    keyed = []
+    for feed_index, (sub, post) in enumerate(ranked):
+        priority = min(rank_in_subreddit[sub], REDDIT_MIN_POSTS_PER_SUBREDDIT)
+        rank_in_subreddit[sub] += 1
+        keyed.append((priority, feed_index, post))
+    chosen = sorted(keyed, key=lambda k: (k[0], k[1]))[:limit]
+    top = [post for _, _, post in sorted(chosen, key=lambda k: k[1])]
 
     lines = [
         "## Reddit",
-        f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)} から均等に抽出*",
+        f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)}（スコア順。"
+        f"各サブレディットから {REDDIT_MIN_POSTS_PER_SUBREDDIT} 件以上）*",
         "",
         "| # | タイトル |",
         "|---|---|",
