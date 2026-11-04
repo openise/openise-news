@@ -73,3 +73,45 @@ def test_fetch_entries_returns_empty_list_for_empty_feed():
         entries = fetch_qiita.fetch_entries(limit=0)
 
     assert entries == []
+
+
+UTM = "?utm_campaign=popular_items&amp;utm_medium=feed&amp;utm_source=popular_items"
+
+FEED_WITH_UTM_AND_DIGEST = f"""<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title>2026年11月4日 今日のQiitaトレンド記事をポッドキャストで聴こう！</title>
+    <link rel="alternate" href="https://qiita.com/example/items/digest{UTM}"/>
+  </entry>
+  <entry>
+    <title>Claude Code の使い方まとめ</title>
+    <link rel="alternate" href="https://qiita.com/example/items/1{UTM}"/>
+  </entry>
+  <entry>
+    <title>Python 入門</title>
+    <link rel="alternate" href="https://qiita.com/example/items/2{UTM}"/>
+  </entry>
+</feed>
+"""
+
+
+def test_fetch_entries_strips_tracking_query_from_url():
+    with patch("constants.urllib.request.urlopen", return_value=_mock_response(FEED_WITH_UTM_AND_DIGEST)):
+        entries = fetch_qiita.fetch_entries(limit=0)
+
+    assert [e["url"] for e in entries] == [
+        "https://qiita.com/example/items/1",
+        "https://qiita.com/example/items/2",
+    ]
+
+
+def test_fetch_entries_excludes_digest_articles_before_limit():
+    with patch("constants.urllib.request.urlopen", return_value=_mock_response(FEED_WITH_UTM_AND_DIGEST)):
+        entries = fetch_qiita.fetch_entries(limit=1)
+
+    assert [e["title"] for e in entries] == ["Claude Code の使い方まとめ"]
+
+
+def test_strip_query_removes_query_and_fragment():
+    assert fetch_qiita.strip_query("https://qiita.com/a/items/1?utm_source=x#c") == "https://qiita.com/a/items/1"
+    assert fetch_qiita.strip_query("https://qiita.com/a/items/1") == "https://qiita.com/a/items/1"
