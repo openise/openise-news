@@ -2,8 +2,10 @@ name: Daily News
 
 on:
   schedule:
-    # 毎日 11:00 JST（cron は UTC）
-    - cron: "0 2 * * *"
+    # 毎日 2:47 JST（cron は UTC）
+    # 毎時 0 分は GitHub の schedule が集中して遅れや飛ばしが起きやすいので避ける。
+    # 深夜にしておけば、遅れても朝までに公開が終わり、失敗しても朝に手動で再実行できる
+    - cron: "47 17 * * *"
   workflow_dispatch:
 
 permissions:
