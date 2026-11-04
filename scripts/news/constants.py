@@ -24,12 +24,22 @@ JST = timezone(timedelta(hours=9))
 # src/content/news/ は fetch_ai_news.py だけが書き込む対象であり、ここには置かない。
 MANUAL_OUTPUT_DIR = str(Path(__file__).resolve().parents[2] / "vault" / "news-manual")
 
+# 4 文字以上のキーワードは後ろに英字が続いても当たるため、muse（Museum）や loop（Loopback）のような
+# 一般的な語の前方部分になる語は入れない。表記ゆれ（VS Code ・ Next.js ・ Neovim）は別のキーワードとして並べる
 AI_KEYWORDS: list[str] = [
+    # AI ・モデル・サービス
     "ai", "llm", "gpt", "claude", "gemini", "copilot", "chatgpt", "codex",
-    "openai", "anthropic", "ollama", "deepseek",
-    "agent", "vibe", "skills", "mcp", "harness", "claw", "superpowers",
-    "tmux", "git", "github", "astro", "cloudflare", "gemma", "jev",
-    "openclaw", "vllm", "litellm",
+    "grok", "deepseek", "kimi", "qwen", "glm", "ollama", "opencode", "gemma",
+    "openai", "anthropic",
+    # AI 開発の用語
+    "agent", "vibe", "skills", "api", "mcp", "harness", "superpowers", "jev",
+    # 開発ツール
+    "vscode", "vs code", "cursor", "devin", "vim", "neovim", "tmux", "ghostty",
+    "git", "github", "gitlab", "cloudflare",
+    # プログラミング
+    "python", "javascript", "typescript", "node", "rust", "ruby", "rails",
+    "nextjs", "next.js", "markdown", "mermaid", "css", "wordpress", "astro",
+    "adr", "tdd", "sdd", "e2e", "playwright", "cve",
 ]
 
 

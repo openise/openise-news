@@ -16,7 +16,7 @@ import pytest
     "Explain the maintainers tradeoffs", "Digital legacy and legit email",
     "detail train", "paid", "git2", "2ai", "LLMserver", "mcpsystem",
     "GPT6server", "GPT4.1server", "myGPT6", "2GPT6", "GPT.6",
-    "myOpenClaw", "myvLLM", "myLiteLLM",
+    "myNeovim", "trusted", "cvesystem",
 ])
 def test_filter_by_keywords_ignores_keyword_inside_word(title):
     assert constants.filter_by_keywords([{"title": title}], constants.AI_KEYWORDS) == []
@@ -32,12 +32,34 @@ def test_filter_by_keywords_matches_plural_and_japanese_neighbor(title):
 
 
 @pytest.mark.parametrize("title", [
-    "OpenClaw", "openclaw", "vLLM", "VLLM", "LiteLLM", "litellm",
     "GPT6", "gpt4", "GPT4.1", "GPT4.1.2", "日本語GPT6入門", "GPT6.",
 ])
 def test_filter_by_keywords_matches_product_names_and_numbered_gpt(title):
     entries = [{"title": title}]
     assert constants.filter_by_keywords(entries, constants.AI_KEYWORDS) == entries
+
+
+@pytest.mark.parametrize("title", [
+    "VS Code の拡張機能", "VSCode 拡張", "Neovim 入門", "Vim の設定", "Next.js 16 の新機能",
+    "E2Eテスト大全", "Rust で書く", "CVE-2026-12345 の脆弱性", "Grok 5 が登場", "Qwen3 を試す",
+    "GLM-5 の性能", "Kimi K3", "OpenCode を使う", "Ghostty の設定", "GitLab CI", "Python 3.15",
+    "TypeScript 7", "Node.js 26", "Ruby on Rails", "Markdown 記法", "Mermaid で図を描く",
+    "CSS の新機能", "Playwright でテスト", "ADR を書く", "TDD 入門", "SDD で開発", "Web API 設計",
+    "Cursor 3.0", "Devin を導入", "WordPress 7",
+])
+def test_filter_by_keywords_matches_programming_keywords(title):
+    entries = [{"title": title}]
+    assert constants.filter_by_keywords(entries, constants.AI_KEYWORDS) == entries
+
+
+@pytest.mark.parametrize("title", [
+    # 4 文字以上のキーワードは後ろに英字が続いても当たるため、muse ・ loop は入れていない
+    "Museum of Modern Art", "Loopback interface",
+    # 外したキーワード（claw ・ openclaw ・ vllm ・ litellm）だけを含むタイトル
+    "vLLM で推論", "OpenClaw を試す", "LiteLLM proxy", "Claw machine",
+])
+def test_filter_by_keywords_ignores_unlisted_words(title):
+    assert constants.filter_by_keywords([{"title": title}], constants.AI_KEYWORDS) == []
 
 
 def test_filter_by_keywords_treats_custom_keywords_as_literals():
