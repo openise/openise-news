@@ -220,6 +220,13 @@ def _sanitize_url(parsed: urllib.parse.ParseResult) -> str:
     return safe_url
 
 
+def render_table_text(text: str) -> str:
+    """外部由来の文字列を、表のセルに置いても HTML ・表・リンク構文を壊さない形にする。"""
+    safe_text = html.escape(text, quote=True)
+    safe_text = _MD_ESCAPE_RE.sub(r"\\\1", safe_text)
+    return re.sub(r"[\r\n]+", " ", safe_text)
+
+
 def render_external_link(title: str, url: str) -> str:
     """外部由来の title / url を Markdown リンクに安全に変換する。
 
@@ -229,9 +236,7 @@ def render_external_link(title: str, url: str) -> str:
     - HTTP(S) 以外のスキーム（javascript: 等）はリンク化しない
     - URL が空・スキーム欠損の場合もリンク化しない
     """
-    safe_title = html.escape(title, quote=True)
-    safe_title = _MD_ESCAPE_RE.sub(r"\\\1", safe_title)
-    safe_title = re.sub(r"[\r\n]+", " ", safe_title)
+    safe_title = render_table_text(title)
 
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme in ("http", "https") and parsed.netloc:
