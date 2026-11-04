@@ -198,6 +198,36 @@ def test_curate_sends_only_number_source_title_and_score(news_dir):
     assert "http" not in payload["messages"][1]["content"]
 
 
+def test_curate_reads_tables_with_reduced_columns(news_dir):
+    news = NEWS.split("## はてなブックマーク")[0] + (
+        "## はてなブックマーク\n\n| # | タイトル | BM |\n|---|---|---|\n"
+        "| 1 | [はてな記事](https://example.com/hb1) | 203 |\n\n---\n\n"
+        "## Hacker News\n\n| # | タイトル | Points |\n|---|---|---|\n"
+        "| 1 | [Show HN: An agent](https://news.ycombinator.com/item?id=1) | 142 |\n\n---\n\n"
+        "## Reddit\n\n| # | タイトル |\n|---|---|\n"
+        "| 1 | [Reddit post](https://www.reddit.com/r/ClaudeAI/1) |\n\n---\n\n"
+        "## GitHub Trending\n\n| # | リポジトリ | Star |\n|---|---|---|\n"
+        "| 1 | [owner/agent](https://github.com/owner/agent) | 1234 |\n"
+        "| 2 | [owner/plain](https://github.com/owner/plain) | — |\n\n---\n\n"
+        "## Zenn\n\n| # | タイトル | いいね |\n|---|---|---|\n"
+        "| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) | 12 |\n"
+    )
+    write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == (
+        "候補:\n"
+        "1. [はてなブックマーク] はてな記事 (203 users)\n"
+        "2. [Hacker News] Show HN: An agent (142 points)\n"
+        "3. [Reddit] Reddit post\n"
+        "4. [GitHub Trending] owner/agent (1234 stars today)\n"
+        "5. [GitHub Trending] owner/plain\n"
+        "6. [Zenn] Zenn 記事 (12 likes)"
+    )
+
+
 def test_curate_reads_zenn_table_without_likes_column(news_dir):
     news = NEWS.split("## はてなブックマーク")[0] + (
         "## Zenn\n\n| # | タイトル |\n|---|---|\n| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) |\n"

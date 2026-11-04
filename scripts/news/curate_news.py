@@ -116,20 +116,23 @@ def parse_candidates(body: str) -> list[dict]:
         label = source
         score = None
         description = None
+        # 列を減らす前（2026-11 初めまで）の News にも、ピックアップを付け直せるように列数で読み分ける
         if source == "はてなブックマーク":
             score = f"{cells[2]} users"
         elif source == "Hacker News":
-            score = f"{cells[3]} points"
+            # 旧: | # | 種別 | タイトル | Points | Comments |、新: | # | タイトル | Points |
+            score = f"{cells[3] if len(cells) >= 5 else cells[2]} points"
         elif source == "Zenn" and len(cells) >= 3:
-            # いいね数の列が無い 2026-11 初めまでの News にも、ピックアップを付け直せるようにする
             score = f"{cells[2]} likes"
-        elif source == "Reddit":
+        elif source == "Reddit" and len(cells) >= 3:
+            # 旧: | # | サブレディット | タイトル |
             label = f"Reddit ({cells[1]})"
-        elif source == "GitHub Trending" and len(cells) >= 4:
-            # 説明・今日のスターの列が無い 2026-11 初めまでの News にも、ピックアップを付け直せるようにする
-            description = cells[2] or None
-            if cells[3] != "—":
-                score = f"{cells[3]} stars today"
+        elif source == "GitHub Trending" and len(cells) >= 3:
+            # 旧: | # | リポジトリ | 説明 | 今日のスター |、新: | # | リポジトリ | Star |
+            if len(cells) >= 4:
+                description = cells[2] or None
+            if cells[-1] != "—":
+                score = f"{cells[-1]} stars today"
 
         candidates.append({
             "id": len(candidates) + 1,

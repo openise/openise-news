@@ -28,7 +28,7 @@ import fetch_reddit
 import fetch_github_trend
 import fetch_qiita
 import fetch_zenn
-from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link, render_table_text
+from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
 
 LIMIT = 10
 # はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも Qiita の人気記事フィードにも数日分の記事が並ぶため、
@@ -89,7 +89,7 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     lines = [
         HB_HEADING,
         "",
-        "| # | タイトル | ブックマーク数 |",
+        "| # | タイトル | BM |",
         "|---|---|---|",
     ]
     if filtered:
@@ -99,15 +99,6 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     else:
         lines.append("| — | (該当なし) | — |")
     return lines
-
-
-# Algolia の ask_hn タグには Tell HN や接頭辞のないテキスト投稿も入るため、種別はタイトルで判定する
-HN_KINDS = ("Show HN", "Ask HN", "Tell HN")
-
-
-def hn_kind(title: str) -> str:
-    """タイトルの接頭辞から HN の投稿種別を返す。どれにも当たらなければ「その他」。"""
-    return next((kind for kind in HN_KINDS if title.lower().startswith(kind.lower() + ":")), "その他")
 
 
 def hn_section(limit: int, now: datetime) -> list[str]:
@@ -128,19 +119,19 @@ def hn_section(limit: int, now: datetime) -> list[str]:
         "## Hacker News",
         "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*",
         "",
-        "| # | 種別 | タイトル | Points | Comments |",
-        "|---|---|---|---|---|",
+        "| # | タイトル | Points |",
+        "|---|---|---|",
     ]
     if ranked:
         for i, h in enumerate(ranked, 1):
             title = h.get("title") or ""
             url = fetch_hn.HN_BASE + h.get("objectID", "")
             link = render_external_link(title, url)
-            lines.append(f"| {i} | {hn_kind(title)} | {link} | {h.get('points') or 0} | {h.get('num_comments') or 0} |")
+            lines.append(f"| {i} | {link} | {h.get('points') or 0} |")
     elif show_raw is None and ask_raw is None:
-        lines.append("| — | — | (取得できませんでした) | — | — |")
+        lines.append("| — | (取得できませんでした) | — |")
     else:
-        lines.append("| — | — | (該当なし) | — | — |")
+        lines.append("| — | (該当なし) | — |")
     lines.append("")
 
     return lines
@@ -149,12 +140,7 @@ def hn_section(limit: int, now: datetime) -> list[str]:
 def reddit_section(limit: int, period: str) -> list[str]:
     """Reddit AI 関連サブレディット ピックアップ（RSS フィード経由、サブレディットごとに均等割り）"""
     posts_by_subreddit_dict = fetch_reddit.fetch_top_posts_multi(fetch_reddit.AI_SUBREDDITS, limit, period)
-    posts_by_subreddit = []
-    for sub in fetch_reddit.AI_SUBREDDITS:
-        posts = posts_by_subreddit_dict[sub]
-        for p in posts:
-            p["subreddit"] = sub
-        posts_by_subreddit.append(posts)
+    posts_by_subreddit = [posts_by_subreddit_dict[sub] for sub in fetch_reddit.AI_SUBREDDITS]
 
     # サブレディットを 1 件ずつ巡回して拾う。単純連結だと先頭のサブレディットが
     # limit 件の枠を占有し、後続のサブレディットが 1 件も載らなくなるため。
@@ -165,15 +151,15 @@ def reddit_section(limit: int, period: str) -> list[str]:
         "## Reddit",
         f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)} から均等に抽出*",
         "",
-        "| # | サブレディット | タイトル |",
-        "|---|---|---|",
+        "| # | タイトル |",
+        "|---|---|",
     ]
     if top:
         for i, p in enumerate(top, 1):
             link = render_external_link(p["title"], p["url"])
-            lines.append(f"| {i} | r/{p['subreddit']} | {link} |")
+            lines.append(f"| {i} | {link} |")
     else:
-        lines.append("| — | — | (取得できませんでした) |")
+        lines.append("| — | (取得できませんでした) |")
     lines.append("")
 
     return lines
@@ -186,16 +172,16 @@ def github_trend_section(limit: int) -> list[str]:
     lines = [
         "## GitHub Trending",
         "",
-        "| # | リポジトリ | 説明 | 今日のスター |",
-        "|---|---|---|---|",
+        "| # | リポジトリ | Star |",
+        "|---|---|---|",
     ]
     if entries:
         for i, e in enumerate(entries, 1):
             link = render_external_link(e["title"], e["url"])
             stars = "—" if e["stars_today"] is None else e["stars_today"]
-            lines.append(f"| {i} | {link} | {render_table_text(e['description'])} | {stars} |")
+            lines.append(f"| {i} | {link} | {stars} |")
     else:
-        lines.append("| — | (取得できませんでした) | — | — |")
+        lines.append("| — | (取得できませんでした) | — |")
     lines.append("")
     return lines
 
@@ -231,7 +217,7 @@ def zenn_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]
     lines = [
         ZENN_HEADING,
         "",
-        "| # | タイトル | いいね数 |",
+        "| # | タイトル | いいね |",
         "|---|---|---|",
     ]
     if entries:
