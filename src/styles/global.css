@@ -108,10 +108,18 @@ code {
   .content-article :is(th, td) {
     min-width: 6em;
   }
+
+  /* 1 列目は 1〜2 桁の番号だけなので、最小幅で広げずタイトル列に幅を回す */
+  .content-article :is(th, td):first-child {
+    min-width: 0;
+  }
 }
 
+/* 見出しも日本語はどの文字間でも改行できるため、長いタイトル列に押されて「番号」が 1 文字ずつに折り返される。
+   見出しは短い語だけなので折り返さず、列幅を見出しの幅以上に保つ */
 .content-article thead th {
   padding-top: 0.5714286em;
+  white-space: nowrap;
 }
 
 .page-shell {
