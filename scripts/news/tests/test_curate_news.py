@@ -45,10 +45,10 @@ createdDate: "20261103110001"
 
 ## Zenn
 
-| # | タイトル |
-|---|---|
-| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) |
-| — | (取得できませんでした) |
+| # | タイトル | いいね数 |
+|---|---|---|
+| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) | 12 |
+| — | (取得できませんでした) | — |
 
 ---
 
@@ -151,7 +151,7 @@ def test_curate_inserts_pickup_after_frontmatter(news_dir, capsys):
         "*ソース: Reddit (r/ClaudeAI)*\n\n"
         "   Reddit の投稿です。\n\n"
         "4. **[Zenn 記事](https://zenn.dev/x/articles/1)**  \n"
-        "*ソース: Zenn*\n\n"
+        "*ソース: Zenn — 12 likes*\n\n"
         "   Zenn の記事です。\n\n"
         "## はてなブックマーク\n"
     )
@@ -193,9 +193,22 @@ def test_curate_sends_only_number_source_title_and_score(news_dir):
         "1. [はてなブックマーク] Claude Code | 入門 & 実践 (203 users)\n"
         "2. [Hacker News] Show HN: An agent (142 points)\n"
         "3. [Reddit (r/ClaudeAI)] Reddit post\n"
-        "4. [Zenn] Zenn 記事"
+        "4. [Zenn] Zenn 記事 (12 likes)"
     )
     assert "http" not in payload["messages"][1]["content"]
+
+
+def test_curate_reads_zenn_table_without_likes_column(news_dir):
+    news = NEWS.split("## はてなブックマーク")[0] + (
+        "## Zenn\n\n| # | タイトル |\n|---|---|\n| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) |\n"
+    )
+    path = write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == "候補:\n1. [Zenn] Zenn 記事"
+    assert "*ソース: Zenn*\n" in path.read_text(encoding="utf-8")
 
 
 def test_curate_accepts_code_fenced_json_and_choices_format(news_dir):
@@ -210,7 +223,7 @@ def test_curate_accepts_code_fenced_json_and_choices_format(news_dir):
 
     run_curate(news_dir, io.BytesIO(json.dumps(body).encode("utf-8")))
 
-    assert "*ソース: Zenn*\n\n   Zenn の記事\n" in path.read_text(encoding="utf-8")
+    assert "*ソース: Zenn — 12 likes*\n\n   Zenn の記事\n" in path.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
@@ -230,7 +243,7 @@ def test_curate_discards_reasoning_output(news_dir, result):
     run_curate(news_dir, io.BytesIO(json.dumps(body).encode("utf-8")))
 
     text = path.read_text(encoding="utf-8")
-    assert "*ソース: Zenn*\n\n   Zenn の記事\n" in text
+    assert "*ソース: Zenn — 12 likes*\n\n   Zenn の記事\n" in text
     assert "候補 1 は重要" not in text
 
 

@@ -31,9 +31,11 @@ import fetch_zenn
 from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
 
 LIMIT = 10
-# タグ別新着エントリーのページには数日分の記事が並ぶため、それより長い期間を見て重複を除く
-HB_HISTORY_DAYS = 7
+# はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも数日分の記事が並ぶため、
+# それより長い期間を見て重複を除く
+HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
+ZENN_HEADING = "## Zenn"
 
 # render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
 _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
@@ -43,22 +45,28 @@ _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
 # セクション生成
 # -----------------------------------------------------------------------
 
-def recent_hb_urls(now: datetime, base_dir: str) -> set[str]:
-    """対象日の前日から 7 日前まで（両端を含む）の News のはてなブックマークの表にある URL を返す。"""
+def recent_urls(now: datetime, base_dir: str, heading: str) -> set[str]:
+    """対象日の前日から 7 日前まで（両端を含む）の News で、heading の表にある URL を返す。"""
     urls = set()
-    for days in range(1, HB_HISTORY_DAYS + 1):
+    for days in range(1, HISTORY_DAYS + 1):
         path = os.path.join(base_dir, (now - timedelta(days=days)).strftime("%Y%m%d"), "index.md")
         if not os.path.exists(path):
             continue
-        in_hb = False
+        in_section = False
         with open(path, encoding="utf-8") as f:
             for line in f:
                 if line.startswith("## "):
-                    in_hb = line.startswith(HB_HEADING)
+                    in_section = line.startswith(heading)
                     continue
-                if in_hb:
+                if in_section:
                     urls.update(m.group(2) for m in _LINK_RE.finditer(line))
     return urls
+
+
+def _is_excluded(entry: dict, excluded_urls: set[str]) -> bool:
+    # 過去の表と同じ形で比べるため、表に書き出すときのリンクから URL を取り出す
+    link = _LINK_RE.fullmatch(render_external_link(entry["title"], entry["url"]))
+    return bool(link) and link.group(2) in excluded_urls
 
 
 def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
@@ -70,9 +78,7 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     for e in filter_by_keywords(entries, AI_KEYWORDS):
         if e["title"] in seen_titles:
             continue
-        # 過去の表と同じ形で比べるため、表に書き出すときのリンクから URL を取り出す
-        link = _LINK_RE.fullmatch(render_external_link(e["title"], e["url"]))
-        if link and link.group(2) in excluded_urls:
+        if _is_excluded(e, excluded_urls):
             continue
         seen_titles.add(e["title"])
         filtered.append(e)
@@ -191,10 +197,25 @@ def qiita_section(limit: int) -> list[str]:
     return simple_table_section("## Qiita", "タイトル", entries)
 
 
-def zenn_section(limit: int) -> list[str]:
-    """Zenn AI 関連最新記事 Top N"""
-    entries = fetch_zenn.fetch_entries(limit=limit, keywords=AI_KEYWORDS)
-    return simple_table_section("## Zenn", "タイトル", entries)
+def zenn_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
+    """Zenn AI 関連 Daily ランキング Top N（excluded_urls の記事は除外、いいね数の多い順）"""
+    entries = fetch_zenn.fetch_entries(limit=0, keywords=AI_KEYWORDS)
+    entries = [e for e in entries if not _is_excluded(e, excluded_urls)][:limit]
+
+    lines = [
+        ZENN_HEADING,
+        "",
+        "| # | タイトル | いいね数 |",
+        "|---|---|---|",
+    ]
+    if entries:
+        for i, e in enumerate(entries, 1):
+            link = render_external_link(e["title"], e["url"])
+            lines.append(f"| {i} | {link} | {e['liked_count']} |")
+    else:
+        lines.append("| — | (取得できませんでした) | — |")
+    lines.append("")
+    return lines
 
 
 # -----------------------------------------------------------------------
@@ -214,7 +235,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     date_str = now.strftime("%Y%m%d%H%M%S")
 
     print("[INFO] はてなブックマーク 取得中 ...")
-    hb = hb_section(limit, recent_hb_urls(now, BASE_DIR))
+    hb = hb_section(limit, recent_urls(now, BASE_DIR, HB_HEADING))
 
     print("[INFO] Hacker News 取得中 ...")
     hn = hn_section(limit)
@@ -229,7 +250,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     qt = qiita_section(limit)
 
     print("[INFO] Zenn 取得中 ...")
-    zn = zenn_section(limit)
+    zn = zenn_section(limit, recent_urls(now, BASE_DIR, ZENN_HEADING))
 
     lines = [
         "---",
