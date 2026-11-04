@@ -59,6 +59,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
+<a id="はてなブックマークai-関連-top-10"></a>
+
 ## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
@@ -75,6 +77,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 | 10 | [AIが生成したコードは読むべきか？抽象化設計とコードの品質保証 / abstraction-design-and-quality](https://speakerdeck.com/minodriven/abstraction-design-and-quality) | 132 |
 
 ---
+
+<a id="hacker-newsai-関連-top-10"></a>
 
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
@@ -95,6 +99,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
+<a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
+
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
@@ -114,6 +120,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 
 ---
 
+<a id="github-trendingai-関連-top-10"></a>
+
 ## GitHub Trending
 
 | 番号 | リポジトリ |
@@ -127,6 +135,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 | 7 | [patchy631/ai-engineering-hub](https://github.com/patchy631/ai-engineering-hub) |
 
 ---
+
+<a id="qiitaai-関連人気記事-top-10"></a>
 
 ## Qiita
 
@@ -144,6 +154,8 @@ Rust 製の高速・構文認識 Git difftool である「OmniDiff」が Hacker 
 | 10 | [逸般家庭のProxmoxにPenpotを立てて、Claude Codeにデザインを見ながらアプリを作ってもらう](https://qiita.com/hikaruright/items/b2d741c38f3f97366e56?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 
 ---
+
+<a id="zennai-関連最新記事-top-10"></a>
 
 ## Zenn
 

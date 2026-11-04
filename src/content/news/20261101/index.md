@@ -57,6 +57,8 @@ createdDate: "20261101110001"
 
     GitHub Actions の action バージョンをハードコードする慣習の問題点を指摘し、`actions.lock` による依存ロックの仕組みへ移行することを提唱した記事。AI エージェントが CI / CD パイプラインを自動生成・修正する場面でも安全性と再現性を担保するための実践的な開発者知識として有用。
 
+<a id="はてなブックマークai-関連-top-10"></a>
+
 ## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
@@ -73,6 +75,8 @@ createdDate: "20261101110001"
 | 10 | [今、最も使われているプログラミング言語は？　AIコーディングでPython超えて急成長](https://www.itmedia.co.jp/aiplus/article/2610/29/2000002719/) | 27 |
 
 ---
+
+<a id="hacker-newsai-関連-top-10"></a>
 
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
@@ -93,6 +97,8 @@ createdDate: "20261101110001"
 
 ---
 
+<a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
+
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
@@ -112,6 +118,8 @@ createdDate: "20261101110001"
 
 ---
 
+<a id="github-trendingai-関連-top-10"></a>
+
 ## GitHub Trending
 
 | 番号 | リポジトリ |
@@ -127,6 +135,8 @@ createdDate: "20261101110001"
 | 9 | [bregman-arie/devops-exercises](https://github.com/bregman-arie/devops-exercises) |
 
 ---
+
+<a id="qiitaai-関連人気記事-top-10"></a>
 
 ## Qiita
 
@@ -144,6 +154,8 @@ createdDate: "20261101110001"
 | 10 | [開発途中でAIモデルやエージェントを替えても品質を落とさない：リポジトリに残す3原則](https://qiita.com/lumichy/items/2165d8f0dd84cc5e351a?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 
 ---
+
+<a id="zennai-関連最新記事-top-10"></a>
 
 ## Zenn
 

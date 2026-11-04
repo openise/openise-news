@@ -55,6 +55,8 @@ createdDate: "20261103180143"
 
     Claude Code を活用して、AWS / ECS を含むインフラ構築期間を 3 か月から 1 か月に短縮した事例です。
 
+<a id="はてなブックマークai-関連-top-10"></a>
+
 ## はてなブックマーク
 
 | 番号 | タイトル | ブックマーク数 |
@@ -71,6 +73,8 @@ createdDate: "20261103180143"
 | 10 | [エンジニアが「勝手に育つ時代」は終わった　～エンジニアを育ててきた装置はAIで壊れた～](https://codezine.jp/article/detail/30081) | 204 |
 
 ---
+
+<a id="hacker-newsai-関連-top-10"></a>
 
 ## Hacker News
 *対象: Show HN + Ask HN の合算ランキング*
@@ -91,6 +95,8 @@ createdDate: "20261103180143"
 
 ---
 
+<a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
+
 ## Reddit
 *対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
@@ -110,6 +116,8 @@ createdDate: "20261103180143"
 
 ---
 
+<a id="github-trendingai-関連-top-10"></a>
+
 ## GitHub Trending
 
 | 番号 | リポジトリ |
@@ -124,6 +132,8 @@ createdDate: "20261103180143"
 | 8 | [karpathy/nanochat](https://github.com/karpathy/nanochat) |
 
 ---
+
+<a id="qiitaai-関連人気記事-top-10"></a>
 
 ## Qiita
 
@@ -141,6 +151,8 @@ createdDate: "20261103180143"
 | 10 | [インフラの開発環境構築を3ヶ月→1ヶ月にしたClaude Codeの使い方（AWS / ECS 9サービス）](https://qiita.com/shainfra07/items/c149c06162ab1f3b136a?utm_campaign=popular_items&utm_medium=feed&utm_source=popular_items) |
 
 ---
+
+<a id="zennai-関連最新記事-top-10"></a>
 
 ## Zenn
 
