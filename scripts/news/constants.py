@@ -29,31 +29,36 @@ MANUAL_OUTPUT_DIR = str(Path(__file__).resolve().parents[2] / "vault" / "news-ma
 AI_KEYWORDS: list[str] = [
     # AI ・モデル・サービス
     "llm", "gpt", "claude", "gemini", "copilot", "chatgpt", "codex",
-    "grok", "deepseek", "kimi", "qwen", "glm", "ollama", "opencode", "gemma",
-    "openai", "anthropic",
+    "grok", "muse", "deepseek", "kimi", "qwen", "glm", "ollama", "opencode", "gemma",
+    "jev", "openai", "anthropic", "google", "meta", "aws",
     # AI 開発の用語
-    "agent", "vibe", "skills", "api", "mcp", "harness", "superpowers", "jev",
+    "agent", "vibe", "skills", "api", "mcp", "harness", "superpowers",
     # 開発ツール
     "vscode", "vs code", "cursor", "devin", "vim", "neovim", "tmux", "ghostty",
-    "git", "github", "gitlab", "cloudflare",
+    "git", "github", "gitlab", "cloudflare", "docker", "slack", "emdash",
+    "vercel", "obsidian",
     # プログラミング
     "python", "javascript", "typescript", "node", "rust", "ruby", "rails",
-    "nextjs", "next.js", "markdown", "mermaid", "css", "wordpress", "astro",
-    "adr", "tdd", "sdd", "e2e", "playwright", "cve",
+    "react", "nextjs", "next.js", "npm", "hono", "markdown", "mermaid", "css",
+    "wordpress", "astro", "adr", "tdd", "sdd", "e2e", "playwright", "cve",
 ]
+
+# 4 文字以上でも、後ろに英字が続くと別の一般的な単語になる語（Museum ・ metadata ・
+# reaction ・ honor ・ slacker）。後方複合語を許すと誤一致が多いため右側も境界を求める。
+WHOLE_WORD_KEYWORDS: frozenset[str] = frozenset({"muse", "meta", "react", "hono", "slack"})
 
 
 def filter_by_keywords(entries: list[dict], keywords: list[str]) -> list[dict]:
     """タイトルに指定キーワード（大文字小文字不問）を含む記事のみ返す。
 
     左側は全キーワードで ASCII 英数字の境界を必須とする。右側は 3 文字以下の
-    キーワードのみ同じ境界を必須とし、複数形の s は許す。長いキーワードは
+    キーワードと WHOLE_WORD_KEYWORDS のみ同じ境界を必須とし、複数形の s は許す。長いキーワードは
     ClaudeCode などの後方複合語も許す。GPT は数字・小数点付き番号も許す。
     日本語の隣接は境界として扱う。
     """
     patterns = []
     for k in keywords:
-        suffix = r"s?(?![a-z0-9])" if len(k) <= 3 else ""
+        suffix = r"s?(?![a-z0-9])" if len(k) <= 3 or k.lower() in WHOLE_WORD_KEYWORDS else ""
         if k.lower() == "gpt":
             # 小数点の先に数字が残る部分一致を防ぎ、GPT4.1server を除外する。
             suffix = r"(?:\d+(?:\.\d+)*)?s?(?![a-z0-9]|\.\d)"
