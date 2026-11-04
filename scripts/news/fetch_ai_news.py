@@ -11,6 +11,7 @@ fetch_ai_news.py - はてなブックマーク・Hacker News・Reddit・GitHub T
 
 import sys
 import os
+import re
 import tempfile
 from datetime import datetime, timedelta
 from itertools import zip_longest
@@ -30,14 +31,38 @@ import fetch_zenn
 from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
 
 LIMIT = 10
+# タグ別人気エントリーのページには数日分の記事が並ぶため、それより長い期間を見て重複を除く
+HB_HISTORY_DAYS = 7
+HB_HEADING = "## はてなブックマーク"
+
+# render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
+_LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
 
 
 # -----------------------------------------------------------------------
 # セクション生成
 # -----------------------------------------------------------------------
 
-def hb_section(limit: int) -> list[str]:
-    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの人気エントリーから AI キーワード一致で抽出、重複記事は除外）"""
+def recent_hb_urls(now: datetime, base_dir: str) -> set[str]:
+    """対象日の前日から 7 日前まで（両端を含む）の News のはてなブックマークの表にある URL を返す。"""
+    urls = set()
+    for days in range(1, HB_HISTORY_DAYS + 1):
+        path = os.path.join(base_dir, (now - timedelta(days=days)).strftime("%Y%m%d"), "index.md")
+        if not os.path.exists(path):
+            continue
+        in_hb = False
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("## "):
+                    in_hb = line.startswith(HB_HEADING)
+                    continue
+                if in_hb:
+                    urls.update(m.group(2) for m in _LINK_RE.finditer(line))
+    return urls
+
+
+def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
+    """はてなブックマーク AI×プログラミング関連 Top N（プログラミングタグの人気エントリーから AI キーワード一致で抽出、重複記事と excluded_urls の記事は除外）"""
     entries = fetch_hb.fetch_hotentry_tag_entries(category="it", tag="プログラミング", limit=50)
 
     filtered = []
@@ -45,12 +70,16 @@ def hb_section(limit: int) -> list[str]:
     for e in filter_by_keywords(entries, AI_KEYWORDS):
         if e["title"] in seen_titles:
             continue
+        # 過去の表と同じ形で比べるため、表に書き出すときのリンクから URL を取り出す
+        link = _LINK_RE.fullmatch(render_external_link(e["title"], e["url"]))
+        if link and link.group(2) in excluded_urls:
+            continue
         seen_titles.add(e["title"])
         filtered.append(e)
     filtered = filtered[:limit]
 
     lines = [
-        "## はてなブックマーク",
+        HB_HEADING,
         "",
         "| 番号 | タイトル | ブックマーク数 |",
         "|---|---|---|",
@@ -184,7 +213,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     date_str = now.strftime("%Y%m%d%H%M%S")
 
     print("[INFO] はてなブックマーク 取得中 ...")
-    hb = hb_section(limit)
+    hb = hb_section(limit, recent_hb_urls(now, BASE_DIR))
 
     print("[INFO] Hacker News 取得中 ...")
     hn = hn_section(limit)
