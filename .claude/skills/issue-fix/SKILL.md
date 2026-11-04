@@ -1,6 +1,6 @@
 ---
 name: issue-fix
-description: 引数で渡された番号の GitHub Issues の issue を実装し、作業ブランチに push して `Closes #N` 付きの PR を作り、issue に PR のリンクをコメントする。「#N を実装して」「issue N を直して」などと頼まれたときに使う。
+description: 引数で渡された番号の GitHub Issues の issue を実装し、作業ブランチに push して `Closes #N` 付きの PR を作る。issue 本文の Acceptance criteria にチェックを付け、PR のリンクとテスト計画の確認結果を issue にコメントする。「#N を実装して」「issue N を直して」などと頼まれたときに使う。
 ---
 
 # issue-fix
@@ -20,8 +20,13 @@ description: 引数で渡された番号の GitHub Issues の issue を実装し
 5. GitHub MCP の `create_pull_request` で `main` 向けの PR を作る
    - タイトル: commit と同じ `<type>: <内容>`
    - 説明: 先頭に `Closes #N`。続けて変更内容と、Acceptance criteria・テスト計画の確認結果を書く
-6. GitHub MCP の `add_issue_comment` で issue に PR へのリンクをコメントする
-7. PR の URL を報告する
+6. GitHub MCP の `issue_write`（method: `update`）で、issue 本文の Acceptance criteria のうち満たした項目を `- [x]` にする
+   - 本文のほかの部分は変えない。手順 1 で読んだ本文をもとに、チェックボックスだけを書き換えた本文を渡す
+   - merge 後にしか確かめられない項目は `- [ ]` のまま残す
+7. GitHub MCP の `add_issue_comment` で issue にコメントする。次の 2 つを 1 つのコメントにまとめる
+   - PR へのリンク
+   - テスト計画の確認結果。項目ごとに `- [x]` で書き、実行したコマンドと結果（件数など）を添える。merge 後にしか確かめられない項目は `- [ ]` のまま残す
+8. PR の URL を報告する
 
 ## してはいけないこと
 
