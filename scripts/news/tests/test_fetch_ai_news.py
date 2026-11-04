@@ -190,32 +190,32 @@ def test_hb_section_uses_word_boundary_filter():
 
 def test_hb_section_keeps_only_titles_matching_ai_keywords():
     entries = [
-        _entry("AI駆動開発の技術的負債について", "https://example.com/a", 10),
+        _entry("Claude駆動開発の技術的負債について", "https://example.com/a", 10),
         _entry("Mac用ランチャーアプリの新機能", "https://example.com/b", 20),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
-    assert "AI駆動開発の技術的負債について" in body
+    assert "Claude駆動開発の技術的負債について" in body
     assert "Mac用ランチャーアプリの新機能" not in body
 
 
 def test_hb_section_removes_duplicate_titles():
     entries = [
-        _entry("AI記事タイトル", "https://a.example.com/1", 10),
-        _entry("AI記事タイトル", "https://b.example.com/1", 5),
+        _entry("Claude記事タイトル", "https://a.example.com/1", 10),
+        _entry("Claude記事タイトル", "https://b.example.com/1", 5),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
 
     body = "\n".join(lines)
-    assert body.count("AI記事タイトル") == 1
+    assert body.count("Claude記事タイトル") == 1
 
 
 def test_hb_section_escapes_script_in_title():
     entries = [
-        _entry('<script>alert(1)</script> AI記事', "https://example.com/xss", 5),
+        _entry('<script>alert(1)</script> Claude記事', "https://example.com/xss", 5),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         lines = fetch_ai_news.hb_section(10)
@@ -239,24 +239,24 @@ def _hb_rows(lines):
 
 def test_hb_section_orders_rows_by_bookmark_count():
     entries = [
-        _entry("AI a", "https://example.com/a", 10),
-        _entry("AI b", "https://example.com/b", 143),
-        _entry("AI c", "https://example.com/c", 47),
+        _entry("Claude a", "https://example.com/a", 10),
+        _entry("Claude b", "https://example.com/b", 143),
+        _entry("Claude c", "https://example.com/c", 47),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         rows = _hb_rows(fetch_ai_news.hb_section(10))
     assert rows == [
-        "| 1 | [AI b](https://example.com/b) | 143 |",
-        "| 2 | [AI c](https://example.com/c) | 47 |",
-        "| 3 | [AI a](https://example.com/a) | 10 |",
+        "| 1 | [Claude b](https://example.com/b) | 143 |",
+        "| 2 | [Claude c](https://example.com/c) | 47 |",
+        "| 3 | [Claude a](https://example.com/a) | 10 |",
     ]
 
 
 def test_hb_section_keeps_source_order_for_same_bookmark_count():
     entries = [
-        _entry("AI first", "https://example.com/1", 20),
-        _entry("AI second", "https://example.com/2", 20),
-        _entry("AI third", "https://example.com/3", 20),
+        _entry("Claude first", "https://example.com/1", 20),
+        _entry("Claude second", "https://example.com/2", 20),
+        _entry("Claude third", "https://example.com/3", 20),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         rows = _hb_rows(fetch_ai_news.hb_section(10))
@@ -267,9 +267,9 @@ def test_hb_section_keeps_source_order_for_same_bookmark_count():
 
 def test_hb_section_takes_top_n_after_sorting():
     entries = [
-        _entry("AI low1", "https://example.com/low1", 1),
-        _entry("AI low2", "https://example.com/low2", 2),
-        _entry("AI high", "https://example.com/high", 100),
+        _entry("Claude low1", "https://example.com/low1", 1),
+        _entry("Claude low2", "https://example.com/low2", 2),
+        _entry("Claude high", "https://example.com/high", 100),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(2))
@@ -290,27 +290,27 @@ _NOW = datetime(2026, 11, 4, 7, 0, tzinfo=constants.JST)
 def test_hb_section_excludes_urls_listed_in_recent_hb_tables(tmp_path):
     _write_news(tmp_path, "20261103", (
         "---\ntitle: x\n---\n## はてなブックマーク\n\n| # | タイトル | ブックマーク数 |\n|---|---|---|\n"
-        "| 1 | [AI 昨日の記事](https://example.com/old) | 10 |\n"
+        "| 1 | [Claude 昨日の記事](https://example.com/old) | 10 |\n"
     ))
     # frontmatter が無い News も読める
     _write_news(tmp_path, "20261028", (
-        "## はてなブックマーク\n\n| 1 | [AI 7 日前の記事 \\(GitHub\\)](https://example.com/a_%28b%29) | 5 |\n"
+        "## はてなブックマーク\n\n| 1 | [Claude 7 日前の記事 \\(GitHub\\)](https://example.com/a_%28b%29) | 5 |\n"
     ))
     entries = [
-        _entry("AI 昨日の記事", "https://example.com/old", 30),
-        _entry("AI 7 日前の記事 (GitHub)", "https://example.com/a_(b)", 20),
-        _entry("AI 新しい記事", "https://example.com/new", 10),
+        _entry("Claude 昨日の記事", "https://example.com/old", 30),
+        _entry("Claude 7 日前の記事 (GitHub)", "https://example.com/a_(b)", 20),
+        _entry("Claude 新しい記事", "https://example.com/new", 10),
     ]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/old" not in body
     assert "7 日前の記事" not in body
-    assert "| 1 | [AI 新しい記事](https://example.com/new) | 10 |" in body
+    assert "| 1 | [Claude 新しい記事](https://example.com/new) | 10 |" in body
 
 
 def test_hb_section_fills_limit_after_exclusion(tmp_path):
-    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI 0](https://example.com/0) | 1 |\n")
-    entries = [_entry(f"AI {i}", f"https://example.com/{i}", 1) for i in range(3)]
+    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [Claude 0](https://example.com/0) | 1 |\n")
+    entries = [_entry(f"Claude {i}", f"https://example.com/{i}", 1) for i in range(3)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(2, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/0" not in body
@@ -320,24 +320,24 @@ def test_hb_section_fills_limit_after_exclusion(tmp_path):
 
 def test_recent_hb_urls_ignores_other_sections_and_old_news(tmp_path):
     _write_news(tmp_path, "20261103", (
-        "## はてなブックマーク\n\n| 1 | [AI](https://example.com/hb) | 1 |\n\n---\n\n"
-        "## Qiita\n\n| 1 | [AI](https://example.com/qiita) |\n"
+        "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/hb) | 1 |\n\n---\n\n"
+        "## Qiita\n\n| 1 | [Claude](https://example.com/qiita) |\n"
     ))
-    _write_news(tmp_path, "20261027", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/8days) | 1 |\n")
-    _write_news(tmp_path, "20261104", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/today) | 1 |\n")
+    _write_news(tmp_path, "20261027", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/8days) | 1 |\n")
+    _write_news(tmp_path, "20261104", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/today) | 1 |\n")
     assert fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path)) == {"https://example.com/hb"}
 
 
 def test_hb_section_outputs_without_past_news(tmp_path):
-    entries = [_entry("AI 記事", "https://example.com/x", 1)]
+    entries = [_entry("Claude 記事", "https://example.com/x", 1)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "https://example.com/x" in body
 
 
 def test_hb_section_shows_placeholder_when_all_entries_excluded(tmp_path):
-    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [AI](https://example.com/x) | 1 |\n")
-    entries = [_entry("AI 記事", "https://example.com/x", 1)]
+    _write_news(tmp_path, "20261103", "## はてなブックマーク\n\n| 1 | [Claude](https://example.com/x) | 1 |\n")
+    entries = [_entry("Claude 記事", "https://example.com/x", 1)]
     with patch("fetch_hb.fetch_entrylist_tag_entries", return_value=entries):
         body = "\n".join(fetch_ai_news.hb_section(10, fetch_ai_news.recent_hb_urls(_NOW, str(tmp_path))))
     assert "(該当なし)" in body

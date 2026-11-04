@@ -28,7 +28,7 @@ MANUAL_OUTPUT_DIR = str(Path(__file__).resolve().parents[2] / "vault" / "news-ma
 # 一般的な語の前方部分になる語は入れない。表記ゆれ（VS Code ・ Next.js ・ Neovim）は別のキーワードとして並べる
 AI_KEYWORDS: list[str] = [
     # AI ・モデル・サービス
-    "ai", "llm", "gpt", "claude", "gemini", "copilot", "chatgpt", "codex",
+    "llm", "gpt", "claude", "gemini", "copilot", "chatgpt", "codex",
     "grok", "deepseek", "kimi", "qwen", "glm", "ollama", "opencode", "gemma",
     "openai", "anthropic",
     # AI 開発の用語
