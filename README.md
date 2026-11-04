@@ -27,7 +27,8 @@
 ### 無料枠
 
 - 1 日 10,000 Neurons。毎日 00:00 UTC（09:00 JST）にリセットされる
-- 出典: [Workers AI の料金ページ](https://developers.cloudflare.com/workers-ai/platform/pricing/)（2026-11-04 に Web 検索の結果で確認）
+- 出典: [Workers AI の料金ページ](https://developers.cloudflare.com/workers-ai/platform/pricing/)（2026-11-04 に確認。ページの最終更新は 2026-10-20）。モデルの単価も同じページの値と一致する
+- 上限を超えると、その日のリクエストはエラーになる。Workers Paid プランなら、超えた分は 1,000 Neurons あたり $0.011 で課金される
 - 1 回 22〜70 Neurons なので、毎日 1 回の自動実行に数回の手動実行を足しても十分に収まる
 
 ### 実際の使用量を確かめる場所
