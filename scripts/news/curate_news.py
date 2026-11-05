@@ -64,7 +64,7 @@ SYSTEM_PROMPT = f"""あなたは AI ・開発ツールのニュースを選ぶ�
 候補の一覧から「今日のピックアップ」を最大 {MAX_PICKS} 件選び、各記事に日本語で 1 〜 2 文の短いまとめを付けてください。
 
 選定基準:
-- 数値の高さ: はてなブックマークの users 、 Hacker News の points 、 Zenn の likes 、 GitHub Trending の stars today が高いものを優先する（同じ source 内の比較に使う）
+- 数値の高さ: はてなブックマークの users 、 Hacker News の points 、 Zenn と Qiita の likes 、 GitHub Trending の stars today が高いものを優先する（同じ source 内の比較に使う）
 - クロスソース: 複数の source で話題になっているトピックを優先する
 - 多様性: 同じトピックが重ならないようにする
 - 技術寄り: Claude Code ・ AI ・開発ツールなど、開発者向けの技術的な話題を優先する
@@ -127,6 +127,9 @@ def parse_candidates(body: str) -> list[dict]:
             # 旧: | # | 種別 | タイトル | Points | Comments |、新: | # | タイトル | Points |
             score = f"{cells[3] if len(cells) >= 5 else cells[2]} points"
         elif source == "Zenn" and len(cells) >= 3:
+            score = f"{cells[2]} likes"
+        elif source == "Qiita" and len(cells) >= 3 and cells[2] != "—":
+            # 旧: | # | タイトル |、新: | # | タイトル | いいね |
             score = f"{cells[2]} likes"
         elif source == "Reddit" and len(cells) >= 3:
             # 旧: | # | サブレディット | タイトル |、新: | # | タイトル | 順位 |。どちらも 3 列なので 2 列目で見分ける

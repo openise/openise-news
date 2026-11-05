@@ -196,24 +196,32 @@ def github_trend_section(limit: int) -> list[str]:
 
 
 def qiita_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
-    """Qiita 人気記事のうちキーワードに一致するもの Top N（excluded_urls の記事は除外、フィードの順）"""
+    """Qiita 人気記事のうちキーワードに一致するもの Top N（excluded_urls の記事は除外、いいね数の多い順）"""
     # 過去の表には追跡パラメータ付きの URL が残っているため、外した形にそろえて比べる
     excluded_urls = {fetch_qiita.strip_query(u) for u in excluded_urls}
     entries = filter_by_keywords(fetch_qiita.fetch_entries(limit=0), AI_KEYWORDS)
-    entries = [e for e in entries if not _is_excluded(e, excluded_urls)][:limit]
+    entries = [e for e in entries if not _is_excluded(e, excluded_urls)]
+    # API の呼び出し回数を抑えるため、絞り込んで重複を除いた記事だけいいね数を取る
+    token = os.environ.get("QIITA_ACCESS_TOKEN", "")
+    entries = [{**e, "likes_count": fetch_qiita.fetch_likes_count(e["url"], token)} for e in entries]
+    # 安定ソートなので、同数はフィードの順のまま残る。取れなかった記事は最後にする
+    entries = sorted(
+        entries, key=lambda e: (e["likes_count"] is None, -(e["likes_count"] or 0)),
+    )[:limit]
 
     lines = [
         QIITA_HEADING,
         "",
-        "| # | タイトル |",
-        "|---|---|",
+        "| # | タイトル | いいね |",
+        "|---|---|---|",
     ]
     if entries:
         for i, e in enumerate(entries, 1):
             link = render_external_link(e["title"], e["url"])
-            lines.append(f"| {i} | {link} |")
+            likes = "—" if e["likes_count"] is None else e["likes_count"]
+            lines.append(f"| {i} | {link} | {likes} |")
     else:
-        lines.append("| — | (該当なし) |")
+        lines.append("| — | (該当なし) | — |")
     lines.append("")
     return lines
 

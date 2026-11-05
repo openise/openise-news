@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""fetch_qiita.py の fetch_entries() テスト"""
+"""fetch_qiita.py の fetch_entries() ・ fetch_likes_count() テスト"""
+import io
+import json
 import sys
+import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import fetch_qiita
@@ -115,3 +120,69 @@ def test_fetch_entries_excludes_digest_articles_before_limit():
 def test_strip_query_removes_query_and_fragment():
     assert fetch_qiita.strip_query("https://qiita.com/a/items/1?utm_source=x#c") == "https://qiita.com/a/items/1"
     assert fetch_qiita.strip_query("https://qiita.com/a/items/1") == "https://qiita.com/a/items/1"
+
+
+# -----------------------------------------------------------------------
+# fetch_likes_count（Qiita API のいいね数）
+# -----------------------------------------------------------------------
+
+
+class _FakeUrlopen:
+    """urlopen の代わりに呼ばれ、送られたリクエストを記録する。"""
+
+    def __init__(self, response):
+        self.response = response
+        self.requests = []
+
+    def __call__(self, request, timeout=None):
+        self.requests.append(request)
+        if isinstance(self.response, Exception):
+            raise self.response
+        return self.response
+
+
+def _api_response(body):
+    return io.BytesIO(json.dumps(body).encode("utf-8"))
+
+
+def test_fetch_likes_count_sends_token():
+    fake = _FakeUrlopen(_api_response({"likes_count": 42}))
+    with patch("urllib.request.urlopen", fake):
+        assert fetch_qiita.fetch_likes_count("https://qiita.com/example/items/abc123", "qiita-token") == 42
+
+    request = fake.requests[0]
+    assert request.full_url == "https://qiita.com/api/v2/items/abc123"
+    assert request.get_header("Authorization") == "Bearer qiita-token"
+
+
+def test_fetch_likes_count_without_token_sends_no_authorization():
+    fake = _FakeUrlopen(_api_response({"likes_count": 0}))
+    with patch("urllib.request.urlopen", fake):
+        assert fetch_qiita.fetch_likes_count("https://qiita.com/example/items/abc123") == 0
+    assert fake.requests[0].get_header("Authorization") is None
+
+
+@pytest.mark.parametrize("response", [
+    urllib.error.HTTPError("https://qiita.com/api/v2/items/abc123", 403, "Rate limit exceeded", {}, None),
+    urllib.error.URLError("timeout"),
+    io.BytesIO(b"not json"),
+    _api_response({"likes_count": None}),
+    _api_response({"likes_count": True}),
+    _api_response(["not", "a", "dict"]),
+])
+def test_fetch_likes_count_returns_none_and_warns_on_failure(response, capsys):
+    with patch("urllib.request.urlopen", _FakeUrlopen(response)):
+        assert fetch_qiita.fetch_likes_count("https://qiita.com/example/items/abc123") is None
+    assert "[WARN] Qiita API" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("url", [
+    "https://qiita.com/example/",
+    "https://example.com/example/items/abc123",
+])
+def test_fetch_likes_count_skips_url_without_item_id(url, capsys):
+    fake = _FakeUrlopen(_api_response({"likes_count": 1}))
+    with patch("urllib.request.urlopen", fake):
+        assert fetch_qiita.fetch_likes_count(url) is None
+    assert fake.requests == []
+    assert "[WARN] Qiita API" in capsys.readouterr().err

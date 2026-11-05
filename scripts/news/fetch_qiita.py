@@ -8,15 +8,26 @@ Qiita 人気記事 Atom フィード取得スクリプト
     python3 fetch_qiita.py --limit 10
     python3 fetch_qiita.py --ai-only               # AI 関連トピックのみ抽出
     python3 fetch_qiita.py --keywords AI LLM GPT   # 独自キーワードで抽出
+
+環境変数:
+    QIITA_ACCESS_TOKEN（任意）: いいね数を Qiita API で取るときに使う
 """
 
 from __future__ import annotations
+import json
+import re
+import sys
+import urllib.error
 import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 
-from constants import fetch_feed_entries, run_feed_cli
+from constants import USER_AGENT, fetch_feed_entries, run_feed_cli
 
 FEED_URL = "https://qiita.com/popular-items/feed.atom"
+# フィードにはいいね数が無いため、記事ごとに API で取る
+ITEM_API = "https://qiita.com/api/v2/items/{item_id}"
+_ITEM_PATH_RE = re.compile(r"/[^/]+/items/([0-9A-Za-z]+)")
 
 ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
@@ -51,6 +62,35 @@ def _parse_atom_entries(root: ET.Element, limit: int = 0) -> list[dict]:
         results.append({"title": title, "url": url})
 
     return results if limit == 0 else results[:limit]
+
+
+def fetch_likes_count(url: str, token: str = "") -> int | None:
+    """Qiita API で記事のいいね数を取る。取れなければ [WARN] を出して None を返す（表からは落とさない）。"""
+    parts = urllib.parse.urlsplit(url)
+    match = _ITEM_PATH_RE.fullmatch(parts.path) if parts.netloc == "qiita.com" else None
+    if not match:
+        print(f"[WARN] Qiita API: 記事の ID を URL から取れません {url} — いいね数なしで続けます", file=sys.stderr)
+        return None
+
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+    # 認証なしの上限（ IP ごとに 1 時間 60 回）は、取り直しや Actions の runner の共有で届きうるため
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(ITEM_API.format(item_id=match.group(1)), headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=20) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        print(f"[WARN] Qiita API: {url} のいいね数を取れません（ HTTP {e.code} ）— いいね数なしで続けます", file=sys.stderr)
+        return None
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        print(f"[WARN] Qiita API: {url} のいいね数を取れません（ {e} ）— いいね数なしで続けます", file=sys.stderr)
+        return None
+    likes = data.get("likes_count") if isinstance(data, dict) else None
+    if not isinstance(likes, int) or isinstance(likes, bool):
+        print(f"[WARN] Qiita API: {url} の likes_count の形式が不正です — いいね数なしで続けます", file=sys.stderr)
+        return None
+    return likes
 
 
 def fetch_entries(limit: int = 10, keywords: list[str] | None = None) -> list[dict]:
