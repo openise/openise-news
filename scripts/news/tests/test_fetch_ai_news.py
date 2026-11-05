@@ -1095,6 +1095,55 @@ def test_hn_section_uses_hits_from_successful_fetch_when_other_fails():
     assert "| 1 | [Show HN: My Claude tool](https://news.ycombinator.com/item?id=1) | 5 |" in lines
 
 
+def _hn_hit(object_id: str, points: int) -> dict:
+    return {"title": f"Show HN: Claude tool {object_id}", "objectID": object_id, "points": points, "num_comments": 0}
+
+
+def _hn_urls(lines: list[str]) -> list[str]:
+    return re.findall(r"\((https://news\.ycombinator\.com/item\?id=\d+)\)", "\n".join(lines))
+
+
+def test_hn_section_excludes_urls_listed_in_recent_hn_tables_before_limit(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## Reddit\n\n| 1 | [x](https://news.ycombinator.com/item?id=3) | 1 |\n\n---\n\n"
+        "## Hacker News\n\n| # | タイトル | Points |\n|---|---|---|\n"
+        "| 1 | [Show HN: Claude tool 1](https://news.ycombinator.com/item?id=1) | 50 |\n"
+    ))
+    hits = [_hn_hit("1", 100), _hn_hit("2", 90), _hn_hit("3", 80)]
+    excluded = fetch_ai_news.recent_urls(HN_NOW, str(tmp_path), fetch_ai_news.HN_HEADING)
+    with patch("fetch_hn.fetch_hits_or_none", side_effect=[hits, []]):
+        lines = fetch_ai_news.hn_section(2, HN_NOW, excluded)
+
+    # 除いた 1 の代わりに次の順位の 3 が入る。Reddit の表にだけある 3 は除かない
+    assert _hn_urls(lines) == ["https://news.ycombinator.com/item?id=2", "https://news.ycombinator.com/item?id=3"]
+    assert "| 1 | [Show HN: Claude tool 2](https://news.ycombinator.com/item?id=2) | 90 |" in lines
+
+
+def test_hn_section_shows_no_match_when_all_hits_excluded():
+    with patch("fetch_hn.fetch_hits_or_none", side_effect=[[_hn_hit("1", 10)], []]):
+        lines = fetch_ai_news.hn_section(10, HN_NOW, {"https://news.ycombinator.com/item?id=1"})
+
+    assert "| — | (該当なし) | — |" in lines
+
+
+def test_build_markdown_excludes_hn_posts_in_previous_news(tmp_path, monkeypatch):
+    monkeypatch.setattr(fetch_ai_news, "BASE_DIR", str(tmp_path))
+    _write_news(tmp_path, "20261103", "## Hacker News\n\n| 1 | [a](https://news.ycombinator.com/item?id=1) | 1 |\n")
+    source_functions = [
+        "fetch_hb.fetch_entrylist_tag_entries", "fetch_github_trend.fetch_entries",
+        "fetch_qiita.fetch_entries", "fetch_zenn.fetch_entries",
+    ]
+    with ExitStack() as stack:
+        for function in source_functions:
+            stack.enter_context(patch(function, return_value=[]))
+        stack.enter_context(patch("fetch_reddit.fetch_url", return_value=None))
+        stack.enter_context(patch("fetch_hn.fetch_hits_or_none", side_effect=[[_hn_hit("1", 10), _hn_hit("2", 5)], []]))
+        markdown = fetch_ai_news.build_markdown(10, "day", _NOW)
+
+    assert "https://news.ycombinator.com/item?id=1" not in markdown
+    assert "https://news.ycombinator.com/item?id=2" in markdown
+
+
 def test_build_markdown_passes_its_now_to_hn_section():
     now = datetime(2026, 8, 20, tzinfo=constants.JST)
     with patch("fetch_ai_news.hn_section", return_value=[]) as mock_hn, \
@@ -1105,4 +1154,5 @@ def test_build_markdown_passes_its_now_to_hn_section():
          patch("fetch_ai_news.zenn_section", return_value=[]):
         fetch_ai_news.build_markdown(10, "day", now)
 
-    mock_hn.assert_called_once_with(10, now)
+    mock_hn.assert_called_once()
+    assert mock_hn.call_args.args[:2] == (10, now)
