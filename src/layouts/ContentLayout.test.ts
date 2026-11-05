@@ -57,6 +57,12 @@ describe("ContentLayout の本文の左端", () => {
     expect(shell).toMatch(/margin-inline:\s*auto;/);
   });
 
+  it(".content-article を外枠の中で中央に置く", () => {
+    const article = css.match(/\.content-article\s*\{([^}]*)\}/)?.[1] ?? "";
+
+    expect(article).toMatch(/margin-inline:\s*auto;/);
+  });
+
   it(".content-shell と .content-article の左に padding / margin を足さない", () => {
     for (const rule of css.matchAll(/\.content-(?:shell|article)\s*\{([^}]*)\}/g)) {
       expect(rule[1]).not.toMatch(/(?:padding|margin)-(?:left|inline-start)\s*:|(?:padding|margin)(?:-inline)?\s*:(?!\s*auto;)/);

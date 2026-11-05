@@ -59,6 +59,24 @@ code {
   --tw-prose-td-borders: var(--color-border);
 }
 
+/* xl:prose-lg は本文と一緒に見出しも em で大きくするため、見出しは prose-base と同じ大きさに固定する。
+   prose-lg の行間（約 1.78 倍）は広すぎるため、本文の行間を 1.6 倍に詰める */
+@media (width >= 80rem) {
+  .content-article {
+    line-height: 1.6;
+  }
+
+  .content-article :where(h2):not(:where([class~="not-prose"] *)) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .content-article :where(h3):not(:where([class~="not-prose"] *)) {
+    font-size: 1.25rem;
+    line-height: 2rem;
+  }
+}
+
 .content-article a code {
   color: inherit;
 }
