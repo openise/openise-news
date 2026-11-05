@@ -2,7 +2,7 @@
 
 ## Daily News の定期起動
 
-毎日 00:47 JST に Cloudflare Workers の Cron Triggers から GitHub Actions の
+毎日 11:00 JST に Cloudflare Workers の Cron Triggers から GitHub Actions の
 Daily News を起動する。設定・切り替え・確認・復旧の手順は
 [運用手順](docs/daily-news-trigger.md)を参照する。
 
