@@ -117,7 +117,8 @@ def hn_section(limit: int, now: datetime, excluded_urls: set[str] = frozenset())
     show_raw = fetch_hn.fetch_hits_or_none("show_hn", since, limit=50, until=until)
     ask_raw  = fetch_hn.fetch_hits_or_none("ask_hn",  since, limit=50, until=until)
     hits = fetch_hn.filter_by_keywords((show_raw or []) + (ask_raw or []), fetch_hn.AI_KEYWORDS)
-    # 日付で区切った範囲どうしは重ならないが、取得した時刻で範囲を決めていた頃の表とは重なりうるため、前日までの表に載った投稿を除く
+    # 日付で区切った範囲どうしは重ならないため、ここで除かれるのは、取得した時刻で範囲を決めていた頃の表と
+    # 範囲が重なる切り替え直後の 7 日だけ。それより後は何も除かないので、外してよい
     hits = [
         h for h in hits
         if not _is_excluded({"title": h.get("title") or "", "url": fetch_hn.HN_BASE + h.get("objectID", "")}, excluded_urls)

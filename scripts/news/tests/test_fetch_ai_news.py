@@ -1081,9 +1081,14 @@ def test_hn_section_query_range_uses_jst_date_for_non_jst_now():
     assert _hn_query_range(now) == _hn_query_range(HN_NOW)
 
 
-def test_hn_section_query_ranges_of_consecutive_days_are_contiguous():
-    _, until_previous = _hn_query_range(HN_NOW - timedelta(days=1))
-    since_current, _ = _hn_query_range(HN_NOW)
+# 前日より遅く取得するとすき間が、早く取得すると重なりができていた時刻の組み合わせ
+@pytest.mark.parametrize("previous, current", [
+    (datetime(2026, 11, 3, 18, 1, tzinfo=constants.JST), datetime(2026, 11, 4, 23, 39, tzinfo=constants.JST)),
+    (datetime(2026, 11, 3, 23, 39, tzinfo=constants.JST), datetime(2026, 11, 4, 14, 22, tzinfo=constants.JST)),
+])
+def test_hn_section_query_ranges_of_consecutive_days_are_contiguous(previous, current):
+    _, until_previous = _hn_query_range(previous)
+    since_current, _ = _hn_query_range(current)
     # 前日の範囲は until 以下、当日の範囲は since より後なので、同じ値ならすき間も重なりもない
     assert since_current == until_previous
 
