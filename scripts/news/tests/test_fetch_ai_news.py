@@ -14,6 +14,20 @@ import constants
 import fetch_ai_news
 
 
+@pytest.fixture(autouse=True)
+def qiita_likes(monkeypatch):
+    """既定では Qiita API を呼ばず、いいね数なしとして扱う。テストでは likes に URL → いいね数を入れる。"""
+    likes = {}
+    calls = []
+
+    def fake(url, token=""):
+        calls.append((url, token))
+        return likes.get(url)
+
+    monkeypatch.setattr(fetch_ai_news.fetch_qiita, "fetch_likes_count", fake)
+    return SimpleNamespace(likes=likes, calls=calls)
+
+
 @pytest.mark.parametrize("explicit_output", [False, True])
 def test_main_does_not_overwrite_existing_output(tmp_path, monkeypatch, capsys, explicit_output):
     monkeypatch.setattr(fetch_ai_news, "BASE_DIR", str(tmp_path))
@@ -393,19 +407,94 @@ def table_cells(row):
     return re.split(r"(?<!\\)\|", row)[1:-1]
 
 
-def test_qiita_section_renders_title_table():
+def test_qiita_section_renders_likes_table(qiita_likes):
     entries = [{"title": "Claude 記事", "url": "https://qiita.com/example/items/1"}]
+    qiita_likes.likes["https://qiita.com/example/items/1"] = 42
     with patch("fetch_qiita.fetch_entries", return_value=entries):
         lines = fetch_ai_news.qiita_section(10)
 
     assert lines == [
         "## Qiita",
         "",
-        "| # | タイトル |",
-        "|---|---|",
-        "| 1 | [Claude 記事](https://qiita.com/example/items/1) |",
+        "| # | タイトル | いいね |",
+        "|---|---|---|",
+        "| 1 | [Claude 記事](https://qiita.com/example/items/1) | 42 |",
         "",
     ]
+
+
+def test_qiita_section_sorts_by_likes_and_puts_unknown_last(qiita_likes):
+    urls = [f"https://qiita.com/x/items/{i}" for i in range(5)]
+    entries = [{"title": f"Claude {i}", "url": u} for i, u in enumerate(urls)]
+    # 0: 取れない、1: 5、2: 20、3: 5、4: 取れない
+    qiita_likes.likes.update({urls[1]: 5, urls[2]: 20, urls[3]: 5})
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        lines = fetch_ai_news.qiita_section(10)
+
+    rows = [line for line in lines if re.match(r"^\| \d+ \|", line)]
+    assert rows == [
+        f"| 1 | [Claude 2]({urls[2]}) | 20 |",
+        f"| 2 | [Claude 1]({urls[1]}) | 5 |",
+        f"| 3 | [Claude 3]({urls[3]}) | 5 |",
+        f"| 4 | [Claude 0]({urls[0]}) | — |",
+        f"| 5 | [Claude 4]({urls[4]}) | — |",
+    ]
+
+
+def test_qiita_section_ranks_by_likes_before_limit(qiita_likes):
+    urls = [f"https://qiita.com/x/items/{i}" for i in range(3)]
+    entries = [{"title": f"Claude {i}", "url": u} for i, u in enumerate(urls)]
+    qiita_likes.likes.update({urls[0]: 1, urls[1]: 2, urls[2]: 3})
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.qiita_section(2))
+
+    assert f"| 1 | [Claude 2]({urls[2]}) | 3 |" in body
+    assert f"| 2 | [Claude 1]({urls[1]}) | 2 |" in body
+    assert urls[0] not in body
+
+
+def test_qiita_section_fetches_likes_only_for_filtered_entries(tmp_path, qiita_likes, monkeypatch):
+    monkeypatch.setenv("QIITA_ACCESS_TOKEN", "qiita-token")
+    _write_news(tmp_path, "20261103", "## Qiita\n\n| 1 | [Claude 昨日](https://qiita.com/x/items/old) |\n")
+    entries = [
+        {"title": "営業の話", "url": "https://qiita.com/x/items/sales"},
+        {"title": "Claude 昨日", "url": "https://qiita.com/x/items/old"},
+        {"title": "Claude 新しい", "url": "https://qiita.com/x/items/new"},
+    ]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.QIITA_HEADING)
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        fetch_ai_news.qiita_section(10, excluded)
+
+    assert qiita_likes.calls == [("https://qiita.com/x/items/new", "qiita-token")]
+
+
+def test_qiita_section_passes_empty_token_without_env(qiita_likes, monkeypatch):
+    monkeypatch.delenv("QIITA_ACCESS_TOKEN", raising=False)
+    entries = [{"title": "Claude 記事", "url": "https://qiita.com/x/items/1"}]
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        fetch_ai_news.qiita_section(10)
+
+    assert qiita_likes.calls == [("https://qiita.com/x/items/1", "")]
+
+
+def test_qiita_section_excludes_urls_in_recent_three_column_tables(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## Qiita\n\n| # | タイトル | いいね |\n|---|---|---|\n"
+        "| 1 | [Claude 昨日](https://qiita.com/x/items/old) | 12 |\n"
+        "| 2 | [Claude 不明](https://qiita.com/x/items/unknown) | — |\n"
+    ))
+    entries = [
+        {"title": "Claude 昨日", "url": "https://qiita.com/x/items/old"},
+        {"title": "Claude 不明", "url": "https://qiita.com/x/items/unknown"},
+        {"title": "Claude 新しい", "url": "https://qiita.com/x/items/new"},
+    ]
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.QIITA_HEADING)
+    with patch("fetch_qiita.fetch_entries", return_value=entries):
+        body = "\n".join(fetch_ai_news.qiita_section(10, excluded))
+
+    assert "items/old" not in body
+    assert "items/unknown" not in body
+    assert "| 1 | [Claude 新しい](https://qiita.com/x/items/new) | — |" in body
 
 
 def test_qiita_section_filters_by_keywords():
@@ -467,7 +556,7 @@ def test_qiita_section_shows_placeholder_when_all_entries_excluded(tmp_path):
     with patch("fetch_qiita.fetch_entries", return_value=entries):
         lines = fetch_ai_news.qiita_section(10, excluded)
 
-    assert "| — | (該当なし) |" in lines
+    assert "| — | (該当なし) | — |" in lines
 
 
 def _zenn(title, url, liked_count=1):
@@ -539,7 +628,7 @@ def test_qiita_section_shows_placeholder_when_source_returns_empty():
     with patch("fetch_qiita.fetch_entries", return_value=[]):
         lines = fetch_ai_news.qiita_section(10)
 
-    assert "| — | (該当なし) |" in lines
+    assert "| — | (該当なし) | — |" in lines
 
 
 def test_zenn_section_escapes_script_in_title():

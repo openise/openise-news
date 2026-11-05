@@ -58,8 +58,8 @@ import { routes } from "../domain/routes";
   <ul>
     <li>取得元: <a href="https://qiita.com/">Qiita</a> の<a href="https://qiita.com/popular-items/feed.atom">人気記事のフィード</a></li>
     <li>選び方: 人気記事から、キーワードに合う記事を選びます。人気記事をまとめた紹介記事（「今日のQiitaトレンド記事」）と、過去 7 日に載せた記事を除きます</li>
-    <li>数値の列はありません</li>
-    <li>並び順: フィードの順</li>
+    <li>いいね: その記事のいいね数（Qiita API で取得）。取れなかったときは「—」</li>
+    <li>並び順: いいねの多い順。同じ数のときはフィードの順で、「—」は最後</li>
   </ul>
 
   <h3>GitHub Trending</h3>

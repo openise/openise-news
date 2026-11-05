@@ -275,6 +275,41 @@ def test_curate_reads_zenn_table_without_likes_column(news_dir):
     assert "*ソース: Zenn*\n" in path.read_text(encoding="utf-8")
 
 
+def test_curate_reads_qiita_likes_column(news_dir):
+    news = NEWS.split("## はてなブックマーク")[0] + (
+        "## Qiita\n\n| # | タイトル | いいね |\n|---|---|---|\n"
+        "| 1 | [Qiita 記事](https://qiita.com/x/items/1) | 34 |\n"
+        "| 2 | [取れなかった記事](https://qiita.com/x/items/2) | — |\n"
+    )
+    path = write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}, {"id": 2, "summary": "まとめ 2"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == (
+        "候補:\n1. [Qiita] Qiita 記事 (34 likes)\n2. [Qiita] 取れなかった記事"
+    )
+    text = path.read_text(encoding="utf-8")
+    assert "*ソース: Qiita — 34 likes*\n" in text
+    assert "*ソース: Qiita*\n" in text
+
+
+def test_curate_reads_qiita_table_without_likes_column(news_dir):
+    news = NEWS.split("## はてなブックマーク")[0] + (
+        "## Qiita\n\n| # | タイトル |\n|---|---|\n| 1 | [Qiita 記事](https://qiita.com/x/items/1) |\n"
+    )
+    write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == "候補:\n1. [Qiita] Qiita 記事"
+
+
+def test_system_prompt_ranks_qiita_by_likes():
+    assert "Qiita の likes" in curate_news.SYSTEM_PROMPT
+
+
 GITHUB_NEWS_HEAD = NEWS.split("## はてなブックマーク")[0]
 
 
