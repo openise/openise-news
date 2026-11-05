@@ -14,7 +14,6 @@ const Content = latest ? (await render(latest)).Content : undefined;
   <ContentLayout>
     <NewsHeader slot="header" title={latest.data.title} />
     <Content />
-    <p class="not-prose news-list"><a class="news-list-link" href={routes.news()}>News の一覧</a></p>
   </ContentLayout>
 ) : (
   <BaseLayout>
@@ -29,5 +28,4 @@ const Content = latest ? (await render(latest)).Content : undefined;
 <style>
   .home { display: grid; gap: 1rem; }
   .home h1, .home p { margin: 0; }
-  .news-list { margin: 2.5rem 0 0; }
 </style>

@@ -64,8 +64,8 @@ describe("Homepage", () => {
     expect(document.querySelectorAll(".latest-news-button")).toHaveLength(0);
   });
 
-  it("News の一覧へのリンクを描画する", () => {
-    expect(document.querySelector(".news-list-link")?.getAttribute("href")).toBe("/news/");
+  it("最新 News の本文の下に一覧リンクを描画しない", () => {
+    expect(document.querySelector(".news-list-link")).toBeNull();
   });
 
   it("News が空の場合はサイト名を h1 にし、一覧へのリンクを残す", async () => {
