@@ -1,6 +1,6 @@
 ---
 title: "2026 年 11 月 05 日（木）"
-createdDate: "20261105103032"
+createdDate: "20261105142231"
 ---
 
 ## 今日のピックアップ
@@ -8,59 +8,60 @@ createdDate: "20261105103032"
 1. **[OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757)**  
 *ソース: Hacker News — 518 points*
 
-   OpenAI が Codex のチャット内容を用いたモデル学習を、密かに再開している可能性があるという指摘です。
+   OpenAI が Codex チャットでのモデル学習を密かに再開している可能性があるという指摘です。
 
-2. **[OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest)**  
-*ソース: はてなブックマーク — 106 users*
+2. **[max-sixty/worktrunk](https://github.com/max-sixty/worktrunk)**  
+*ソース: GitHub Trending — 531 stars today*
+
+   並列的な AI エージェントのワークフロー向けに設計された、Git worktree 管理のための CLI ツールです。
+
+3. **[FareedKhan-dev/kimi-k3-in-c](https://github.com/FareedKhan-dev/kimi-k3-in-c)**  
+*ソース: GitHub Trending — 351 stars today*
+
+   2.78 兆パラメータの Kimi K3 を、GPU やフレームワークを使わず単一の CPU と 8.24 GB の RAM で推論可能にする C99 実装です。
+
+4. **[garrytan/gstack](https://github.com/garrytan/gstack)**  
+*ソース: GitHub Trending — 290 stars today*
+
+   CEO やエンジニアリングマネージャーなどの役割を果たす 23 のツールを組み合わせた、Claude Code のセットアップ集です。
+
+5. **[OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest)**  
+*ソース: はてなブックマーク — 112 users*
 
    OpenCode、Docker、GitHub Actions を組み合わせて、AI によるペネトレーションテストを全自動化する試みです。
 
-3. **[max-sixty/worktrunk](https://github.com/max-sixty/worktrunk)**  
-*ソース: GitHub Trending — 531 stars today*
+6. **[GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html)**  
+*ソース: はてなブックマーク — 44 users*
 
-   GitHub Trending で 500 星を超える非常に高い注目を集めているプロジェクトです。
+   GitHub Octoverse 2026 のレポートで、TypeScript が最も使われる言語であり、Rust のプルリクエスト増加率が高いことが示されています。
 
-4. **[FareedKhan-dev/kimi-k3-in-c](https://github.com/FareedKhan-dev/kimi-k3-in-c)**  
-*ソース: GitHub Trending — 351 stars today*
+7. **[Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352)**  
+*ソース: Hacker News — 123 points*
 
-   GitHub Trending で急上昇しており、C 言語による Kimi-K3 の実装に関するリポジトリです。
+   嘘をつく LLM の容疑者に尋問を行う、探偵ゲームのデモプロジェクトです。
 
-5. **[GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html)**  
-*ソース: はてなブックマーク — 24 users*
+8. **[Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9)**  
+*ソース: Qiita — 3 likes*
 
-   GitHub Octoverse 2026 のレポートで、TypeScript の普及や Rust のプルリクエスト増加率が示されています。
+   Claude Code において、複数のモデル（Opus, Fable, Sonnet）を自動で使い分ける手法の有用性が報告されています。
 
-6. **[Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352)**  
-*ソース: Hacker News — 121 points*
+9. **[【脆弱性ラッシュ】PHP2Shell・Brotli\(HTTP2Shell\)・Node・Chrome・Goが同時に来た週に、サーバーの「放置」が露呈した話](https://qiita.com/ysmreg1/items/d9f14d2da0ad57303036)**  
+*ソース: Qiita — 4 likes*
 
-   嘘をつく LLM の容疑者を尋問する、探偵ゲームの開発事例です。
+   PHP、Node、Go など複数の脆弱性が重なった週に、サーバーの管理体制の重要性が露呈した事例を紹介しています。
 
-7. **[Kimi-K3.1-Pro is now open-weights](https://www.reddit.com/r/LocalLLaMA/comments/1xnrhvb/kimik31pro_is_now_openweights/)**  
-*ソース: Reddit — フィード 1 位*
+10. **[Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468)**  
+*ソース: Hacker News — 41 points*
 
-   Kimi-K3.1-Pro がオープンウェイトとして公開されたことが話題となっています。
-
-8. **[garrytan/gstack](https://github.com/garrytan/gstack)**  
-*ソース: GitHub Trending — 290 stars today*
-
-   GitHub Trending で注目されており、gstack に関するリポジトリです。
-
-9. **[Claude Code を島で30時間遊ばせたら、やさしい世界が爆誕した ― 『Is this machine playing?』](https://zenn.dev/moimoi/articles/claudecode-agents-play-3d-island)**  
-*ソース: Zenn — 5 likes*
-
-   Claude Code を長時間稼働させた際のエージェントの挙動に関する興味深い実験レポートです。
-
-10. **[Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9)**  
-*ソース: Qiita*
-
-    Claude Code において、複数のモデルを自動で使い分ける具体的な活用手法が紹介されています。
+    RLHF、Attention、LoRA、LLM 評価に関するインタラクティブな学習ノートです。
 
 ## はてなブックマーク
 
 | # | タイトル | BM |
 |---|---|---|
-| 1 | [OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest) | 106 |
-| 2 | [GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html) | 24 |
+| 1 | [OpenCode+Docker+GitHub Actionsで全自動AIペネトレーションテストはじめました](https://zenn.dev/team_zenn/articles/opencode-docker-actions-ai-pentest) | 112 |
+| 2 | [GitHubで最も使われている言語は2年連続TypeScript、プルリクの増加率はRust。急成長したOSSはCC Switch、Omarchyなど。GitHub Octoverse 2026](https://www.publickey1.jp/blog/26/github2typescriptrustosscc_switchomarchygithub_octoverse_2026.html) | 44 |
+| 3 | [A new Go API for JSON - The Go Programming Language](https://go.dev/blog/jsonv2) | 10 |
 
 ---
 
@@ -68,23 +69,25 @@ createdDate: "20261105103032"
 
 | # | タイトル | いいね |
 |---|---|---|
-| 1 | [GitHubのruleset移行時に注意したい、environment secretのブランチ保護仕様](https://zenn.dev/loglass/articles/a89a8d4ee86559) | 14 |
-| 2 | [Claude Code を島で30時間遊ばせたら、やさしい世界が爆誕した ― 『Is this machine playing?』](https://zenn.dev/moimoi/articles/claudecode-agents-play-3d-island) | 5 |
-| 3 | [C/Rust/Julia/Go/Java/JS/PyPy/LuaJIT 実行速度ベンチマーク ― 競プロと科学計算のあいだ](https://zenn.dev/trbx304/articles/34fec79781e39c) | 0 |
-| 4 | [DeepSeek Harnessのagent loopは本当に差し替え可能か、patchで壊してみた](https://zenn.dev/mskbhd/articles/lab-316-deepseek-harness-agentloop-pat) | 0 |
-| 5 | [Claude CodeからPremiere Proを290回動かして、53分のPodcastを全自動編集してみた](https://zenn.dev/salt2/articles/2b6e403e059b10) | 0 |
-| 6 | [Claude Code の会話の記録からコストを数えるときにハマった4つのこと](https://zenn.dev/haruto_miyakawa/articles/claude-code-transcript-cost-pitfalls) | 0 |
-| 7 | [Claude CodeでAndroidの回帰テストを回して分かった、データ・トークン・シナリオ化の課題](https://zenn.dev/photoruction_bl/articles/f00875d067c782) | 0 |
-| 8 | [Astroのpublicに.htaccessを置かず、環境別のビルド先へ生成する](https://zenn.dev/nadarakainc/articles/ceaecb2fdf5d33) | 0 |
+| 1 | [GitHubのruleset移行時に注意したい、environment secretのブランチ保護仕様](https://zenn.dev/loglass/articles/a89a8d4ee86559) | 15 |
+| 2 | [Amazon Bedrock AgentCore Gatewayの推論ターゲットで利用者別のトークン上限を試してみた](https://zenn.dev/fusic/articles/a8a966f7f6124b) | 2 |
+| 3 | [Google Play Console: 取引業者ステータスの申請](https://zenn.dev/hidenori3/articles/1d8f9374e214fd) | 2 |
+| 4 | [「gitコマンド手打ちしてるんですか？」と煽られて10年後の話](https://zenn.dev/matubo/articles/f2088cca8e892f) | 1 |
+| 5 | [C/Rust/Julia/Go/Java/JS/PyPy/LuaJIT 実行速度ベンチマーク ― 競プロと科学計算のあいだ](https://zenn.dev/trbx304/articles/34fec79781e39c) | 0 |
+| 6 | [git archive とハッシュ一覧の照合で、本番の手修正を上書きしないデプロイスクリプトを作る](https://zenn.dev/airiell/articles/git-archive-manifest-deploy) | 0 |
+| 7 | [DeepSeek Harnessのagent loopは本当に差し替え可能か、patchで壊してみた](https://zenn.dev/mskbhd/articles/lab-316-deepseek-harness-agentloop-pat) | 0 |
+| 8 | [claude -p の --max-turns 打ち切り後、プロセスは自分の意思では終わらない](https://zenn.dev/ikinokori/articles/claude-code-max-turns-process-not-exit) | 0 |
+| 9 | [ChatGPTのdotで技術情報を蓄積し、評価を次の情報収集に返す](https://zenn.dev/kzk_maeda/articles/dot-tech-information-cycle) | 0 |
+| 10 | [GitHub Actions のCIで発生したSteamCMDのディスク容量不足エラーを解決する](https://zenn.dev/st_little/articles/resolve-github-actions-runner-disk-space-shortage) | 0 |
 
 ---
 
 ## Qiita
 
-| # | タイトル |
-|---|---|
-| 1 | [Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9) |
-| 2 | [【脆弱性ラッシュ】PHP2Shell・Brotli\(HTTP2Shell\)・Node・Chrome・Goが同時に来た週に、サーバーの「放置」が露呈した話](https://qiita.com/ysmreg1/items/d9f14d2da0ad57303036) |
+| # | タイトル | いいね |
+|---|---|---|
+| 1 | [【脆弱性ラッシュ】PHP2Shell・Brotli\(HTTP2Shell\)・Node・Chrome・Goが同時に来た週に、サーバーの「放置」が露呈した話](https://qiita.com/ysmreg1/items/d9f14d2da0ad57303036) | 4 |
+| 2 | [Claude Codeの/model opusplan＋/advisor fableでOpus・Fable・Sonnetを自動で使い分けたら、めちゃめちゃ良かった](https://qiita.com/inoyu-qiita/items/d486f85b8333d5b324d9) | 3 |
 
 ---
 
@@ -110,15 +113,15 @@ createdDate: "20261105103032"
 | # | タイトル | Points |
 |---|---|---|
 | 1 | [OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757) | 518 |
-| 2 | [Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352) | 121 |
-| 3 | [Show HN: I built a little browser game to practice Vim commands](https://news.ycombinator.com/item?id=50347552) | 70 |
-| 4 | [Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468) | 41 |
-| 5 | [Show HN: Rustable is an open source database client built in Rust](https://news.ycombinator.com/item?id=50347524) | 27 |
-| 6 | [Tell HN: You now need a government id in order to create an Anthropic account](https://news.ycombinator.com/item?id=50356209) | 19 |
-| 7 | [Show HN: Bitcoin-rs – An independent Bitcoin full node in Rust](https://news.ycombinator.com/item?id=50348456) | 10 |
-| 8 | [Ask HN: What is Google Flights&#x27; business model and has it changed recently?](https://news.ycombinator.com/item?id=50358924) | 8 |
-| 9 | [Can the Cloudflare employee that just blocked Route53 Health Checks undo it](https://news.ycombinator.com/item?id=50354813) | 7 |
-| 10 | [Show HN: Google Trends for Reddit](https://news.ycombinator.com/item?id=50359283) | 5 |
+| 2 | [Show HN: Uncracked City, detective game where you question LLM suspects that lie](https://news.ycombinator.com/item?id=50358352) | 123 |
+| 3 | [Show HN: Interactive notes on RLHF, attention, LoRA and LLM evals](https://news.ycombinator.com/item?id=50353468) | 41 |
+| 4 | [Tell HN: You now need a government id in order to create an Anthropic account](https://news.ycombinator.com/item?id=50356209) | 19 |
+| 5 | [Show HN: Bitcoin-rs – An independent Bitcoin full node in Rust](https://news.ycombinator.com/item?id=50348456) | 10 |
+| 6 | [Ask HN: What is Google Flights&#x27; business model and has it changed recently?](https://news.ycombinator.com/item?id=50358924) | 8 |
+| 7 | [Can the Cloudflare employee that just blocked Route53 Health Checks undo it](https://news.ycombinator.com/item?id=50354813) | 8 |
+| 8 | [Show HN: Google Trends for Reddit](https://news.ycombinator.com/item?id=50359283) | 5 |
+| 9 | [Show HN: Run Conway&#x27;s Game of Life in CSS](https://news.ycombinator.com/item?id=50352316) | 5 |
+| 10 | [Show HN: How to Disable Google AI Overview](https://news.ycombinator.com/item?id=50352590) | 4 |
 
 ---
 
@@ -128,15 +131,15 @@ createdDate: "20261105103032"
 |---|---|---|
 | 1 | [Kimi-K3.1-Pro is now open-weights](https://www.reddit.com/r/LocalLLaMA/comments/1xnrhvb/kimik31pro_is_now_openweights/) | 1 |
 | 2 | [I have an ominous feeling that they will take this technology away from us](https://www.reddit.com/r/ClaudeCode/comments/1xnpluu/i_have_an_ominous_feeling_that_they_will_take/) | 3 |
-| 3 | [Introducing Hy4 \(open weights soon\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnhzbz/introducing_hy4_open_weights_soon/) | 6 |
-| 4 | [Axion1-0/Axion-1.0-35B · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnjiu4/axion10axion1035b_hugging_face/) | 10 |
-| 5 | [ricursiveAI/Ripple-65B-Preview · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnx3cs/ricursiveairipple65bpreview_hugging_face/) | 11 |
+| 3 | [Introducing Hy4 \(open weights soon\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnhzbz/introducing_hy4_open_weights_soon/) | 9 |
+| 4 | [ricursiveAI/Ripple-65B-Preview · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnx3cs/ricursiveairipple65bpreview_hugging_face/) | 10 |
+| 5 | [Axion1-0/Axion-1.0-35B · Hugging Face](https://www.reddit.com/r/LocalLLaMA/comments/1xnjiu4/axion10axion1035b_hugging_face/) | 11 |
 | 6 | [Unsloth Qwen3.8-Flash-Next GGUFs V3.1 Update \(November 4th 2026\)](https://www.reddit.com/r/LocalLLaMA/comments/1xnuva2/unsloth_qwen38flashnext_ggufs_v31_update_november/) | 12 |
-| 7 | [B70 Price Increase Incoming --&gt; Intel Might Discontinue the Arc B580 to Prioritize Higher-Margin Arc Pro Cards](https://www.reddit.com/r/LocalLLaMA/comments/1xnfzky/b70_price_increase_incoming_intel_might/) | 16 |
-| 8 | [AI makes me 10x faster at shipping but I am mentally exhausted](https://www.reddit.com/r/ClaudeCode/comments/1xntxi8/ai_makes_me_10x_faster_at_shipping_but_i_am/) | 20 |
-| 9 | [Are we reaching a point where reviewing code takes longer than writing it?](https://www.reddit.com/r/ChatGPTCoding/comments/1xnt7e9/are_we_reaching_a_point_where_reviewing_code/) | 44 |
-| 10 | [is more intelligence really important?](https://www.reddit.com/r/ChatGPTCoding/comments/1xns7m6/is_more_intelligence_really_important/) | 64 |
+| 7 | [Ricursive Intelligence Ripple-65B-Preview: New Dense Model!](https://www.reddit.com/r/LocalLLaMA/comments/1xo2arv/ricursive_intelligence_ripple65bpreview_new_dense/) | 16 |
+| 8 | [AI makes me 10x faster at shipping but I am mentally exhausted](https://www.reddit.com/r/ClaudeCode/comments/1xntxi8/ai_makes_me_10x_faster_at_shipping_but_i_am/) | 19 |
+| 9 | [Are we reaching a point where reviewing code takes longer than writing it?](https://www.reddit.com/r/ChatGPTCoding/comments/1xnt7e9/are_we_reaching_a_point_where_reviewing_code/) | 45 |
+| 10 | [OpenRouter &amp; LLM API gateways \(pay-per-token\) vs flat AI subscriptions: which one actually saves you money?](https://www.reddit.com/r/ChatGPTCoding/comments/1xo3cqx/openrouter_llm_api_gateways_paypertoken_vs_flat/) | 64 |
 
 ---
 
-*取得日時: 2026-11-05 10:30:32 JST*
+*取得日時: 2026-11-05 14:22:31 JST*
