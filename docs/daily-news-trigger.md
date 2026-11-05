@@ -1,9 +1,9 @@
 # Daily News の定期起動
 
-起動専用の `openise-news-trigger` Worker が毎日 00:47 JST（15:47 UTC）に
+起動専用の `openise-news-trigger` Worker が毎日 11:00 JST（02:00 UTC）に
 GitHub API の `workflow_dispatch` を呼び、`main` の
 `.github/workflows/daily-news.yml` を `force=false` で起動する。
-Cron 式は `47 15 * * *`。GitHub Actions の実行待ち時間は残るため、公開時刻を保証するものではない。
+Cron 式は `0 2 * * *`。GitHub Actions の実行待ち時間は残るため、公開時刻を保証するものではない。
 
 コードと設定は `workers/daily-news-trigger/` に置く。公開サイトの
 `wrangler.jsonc` とは別の Worker で、HTTP の公開 URL や起動用エンドポイントは作らない。
@@ -26,7 +26,7 @@ Worker の secret 名は `GITHUB_ACTIONS_TOKEN`。GitHub Actions 側の
 
 Cloudflare の操作は管理者が行う。認証済みの端末で、リポジトリのルートから実行する。
 この変更の merge で GitHub Actions の `schedule` が無くなるため、
-次の 00:47 JST までに十分な余裕を持って切り替える。Cron 設定の反映には数分から 15 分程度かかることがある。
+次の 11:00 JST までに十分な余裕を持って切り替える。Cron 設定の反映には数分から 15 分程度かかることがある。
 切り替えが間に合わない場合は、Daily News を手動実行する。
 
 1. 最新の `main` を取得し、`npm ci` を実行する。
@@ -46,7 +46,7 @@ Cloudflare の操作は管理者が行う。認証済みの端末で、リポジ
    ```
 
 4. Cloudflare の `openise-news-trigger` の設定で、secret 名が登録され、Cron が
-   `47 15 * * *` になっていることを確認する。既存のサイト `openise-news` は変更しない。
+   `0 2 * * *` になっていることを確認する。既存のサイト `openise-news` は変更しない。
 5. GitHub の Daily News に `schedule` が無く、Run workflow から `main` と
    `force` を選べることを確認する。手動実行時の `force` の既定値は false のまま。
 6. 最初の Cron 実行から News の公開まで、次の「確認」に従って確かめる。
@@ -54,9 +54,17 @@ Cloudflare の操作は管理者が行う。認証済みの端末で、リポジ
 通常のコード更新は手順 3 で反映する。token の更新は手順 2 を再実行する。
 `secret put` や `deploy` は本番を変更するため、ローカルの検証とは分けて行う。
 
+## 実行時刻の変更
+
+Cron 設定を変更して merge した後は、管理者が最新の `main` を取得し、
+上の手順 3 で起動用 Worker を再公開する。サイトの Workers Builds だけでは
+Cron 設定は反映されない。次の 11:00 JST より 15 分以上前に反映し、
+Cloudflare の Cron が `0 2 * * *` になっていることと、下記の起動・公開結果を確認する。
+元の時刻へ戻す場合も、設定を revert してから起動用 Worker を再公開する。
+
 ## 確認
 
-Cloudflare の Worker の Logs で、00:47 JST 頃の Cron 実行と次のログを確認する。
+Cloudflare の Worker の Logs で、11:00 JST 頃の Cron 実行と次のログを確認する。
 必要なら実行時刻の前から次のコマンドでログを見る。
 
 ```sh
@@ -91,7 +99,7 @@ News の公開確認結果を書き戻す。
 
    ```yaml
    schedule:
-     - cron: "47 15 * * *"
+     - cron: "0 2 * * *"
    ```
 
 3. GitHub Actions の定期実行が復旧するまで、必要な日だけ手動実行する。
