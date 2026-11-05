@@ -104,16 +104,20 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
 
 
 def hn_section(limit: int, now: datetime, excluded_urls: set[str] = frozenset()) -> list[str]:
-    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N（24 〜 48 時間前の投稿、excluded_urls の投稿は除外）"""
-    # 投稿直後は points が付いていないため、1 日たった記事で比べる
-    since = int((now - timedelta(hours=48)).timestamp())
-    until = int((now - timedelta(hours=24)).timestamp())
+    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N（now の日付の前々日 0:00 〜 前日 0:00 JST の投稿、excluded_urls の投稿は除外）"""
+    # 投稿直後は points が付いていないため、1 日たった記事で比べる。取得した時刻から範囲を決めると、
+    # 時刻が日によってずれたときに前日の範囲と重なったりすき間ができたりするため、日付で区切る
+    end = now.astimezone(JST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+    start = end - timedelta(days=1)
+    # API の条件は「since より後・until 以下」なので、1 秒ずらして「start 以上・end 未満」にする
+    since = int(start.timestamp()) - 1
+    until = int(end.timestamp()) - 1
 
     # 多めに取得してから AI フィルタ
     show_raw = fetch_hn.fetch_hits_or_none("show_hn", since, limit=50, until=until)
     ask_raw  = fetch_hn.fetch_hits_or_none("ask_hn",  since, limit=50, until=until)
     hits = fetch_hn.filter_by_keywords((show_raw or []) + (ask_raw or []), fetch_hn.AI_KEYWORDS)
-    # 取得した時刻が日によってずれると 24 〜 48 時間前の範囲が前日と重なるため、前日までの表に載った投稿を除く
+    # 日付で区切った範囲どうしは重ならないが、取得した時刻で範囲を決めていた頃の表とは重なりうるため、前日までの表に載った投稿を除く
     hits = [
         h for h in hits
         if not _is_excluded({"title": h.get("title") or "", "url": fetch_hn.HN_BASE + h.get("objectID", "")}, excluded_urls)
