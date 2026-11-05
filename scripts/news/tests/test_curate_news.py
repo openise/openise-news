@@ -115,6 +115,22 @@ def run_curate(base_dir, response):
     return fake
 
 
+fetch_repo_description = curate_news.fetch_repo_description
+
+
+@pytest.fixture(autouse=True)
+def no_github_api(monkeypatch):
+    """既定では GitHub API を呼ばず、説明文なしとして扱う（ urlopen のモックを Workers AI 用に残すため）。"""
+    calls = []
+
+    def fake(repo, token=""):
+        calls.append((repo, token))
+        return None
+
+    monkeypatch.setattr(curate_news, "fetch_repo_description", fake)
+    return calls
+
+
 @pytest.fixture
 def news_dir(tmp_path):
     write_news(tmp_path, "20261020", PAST_NEWS)
@@ -295,6 +311,84 @@ def test_curate_reads_github_table_without_description_and_stars_columns(news_di
 
     assert json.loads(fake.requests[0].data)["messages"][1]["content"] == "候補:\n1. [GitHub Trending] owner/agent"
     assert "*ソース: GitHub Trending*\n" in path.read_text(encoding="utf-8")
+
+
+def test_curate_adds_github_api_description_only_when_table_has_none(news_dir, monkeypatch):
+    news = GITHUB_NEWS_HEAD + (
+        "## GitHub Trending\n\n| # | リポジトリ | Star |\n|---|---|---|\n"
+        "| 1 | [owner/agent](https://github.com/owner/agent) | 1234 |\n"
+        "| 2 | [owner/plain](https://github.com/owner/plain) | — |\n"
+    )
+    write_news(news_dir, "20261103", news)
+    calls = []
+
+    def fake(repo, token=""):
+        calls.append((repo, token))
+        return {"owner/agent": "AI agent | <CLI>"}.get(repo)
+
+    monkeypatch.setattr(curate_news, "fetch_repo_description", fake)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake_urlopen = FakeUrlopen(api_response(output))
+    with patch("urllib.request.urlopen", fake_urlopen):
+        curate_news.curate(DATE, str(news_dir), "token", "account", "gh-token")
+
+    assert calls == [("owner/agent", "gh-token"), ("owner/plain", "gh-token")]
+    payload = json.loads(fake_urlopen.requests[0].data)
+    assert payload["messages"][1]["content"] == (
+        "候補:\n"
+        "1. [GitHub Trending] owner/agent (1234 stars today) — AI agent | <CLI>\n"
+        "2. [GitHub Trending] owner/plain"
+    )
+    assert "スター数や Trending に入ったことには触れず" in payload["messages"][0]["content"]
+
+
+def test_curate_does_not_call_github_api_when_table_has_description(news_dir, no_github_api):
+    news = GITHUB_NEWS_HEAD + (
+        "## GitHub Trending\n\n| # | リポジトリ | 説明 | 今日のスター |\n|---|---|---|---|\n"
+        "| 1 | [owner/agent](https://github.com/owner/agent) | AI agent | 1234 |\n"
+    )
+    write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 1, "summary": "まとめ"}], ensure_ascii=False)
+
+    run_curate(news_dir, api_response(output))
+
+    assert no_github_api == []
+
+
+def github_response(body):
+    return io.BytesIO(json.dumps(body).encode("utf-8"))
+
+
+def test_fetch_repo_description_sends_token_and_normalizes_spaces():
+    fake = FakeUrlopen(github_response({"description": "  AI\n agent  "}))
+    with patch("urllib.request.urlopen", fake):
+        assert fetch_repo_description("owner/agent", "gh-token") == "AI agent"
+
+    request = fake.requests[0]
+    assert request.full_url == "https://api.github.com/repos/owner/agent"
+    assert request.get_header("Authorization") == "Bearer gh-token"
+    assert request.get_header("Accept") == "application/vnd.github+json"
+
+
+def test_fetch_repo_description_without_token_sends_no_authorization():
+    fake = FakeUrlopen(github_response({"description": "AI agent"}))
+    with patch("urllib.request.urlopen", fake):
+        assert fetch_repo_description("owner/agent") == "AI agent"
+    assert fake.requests[0].get_header("Authorization") is None
+
+
+@pytest.mark.parametrize("response", [
+    github_response({"description": None}),
+    github_response({"description": "  "}),
+    github_response(["not", "a", "dict"]),
+    io.BytesIO(b"not json"),
+    urllib.error.HTTPError("https://api.github.com/repos/owner/agent", 403, "rate limit", None, None),
+    urllib.error.URLError("timeout"),
+])
+def test_fetch_repo_description_returns_none_on_failure_or_empty(response):
+    with patch("urllib.request.urlopen", FakeUrlopen(response)):
+        assert fetch_repo_description("owner/agent") is None
 
 
 def test_curate_accepts_code_fenced_json_and_choices_format(news_dir):
