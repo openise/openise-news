@@ -37,12 +37,14 @@ const { title, description } = Astro.props;
     /* 本文の左端 max(16px, (画面幅 - 1098px) / 2) は openise-daily ・ openise-wiki ・ openise-theme で揃えている（daily: src/layouts/BaseLayout.astro の <main>、wiki: src/layouts/ContentLayout.astro の .content-shell と src/styles/global.css の .page-shell、theme: src/styles/global.css の .site-main） */
     width: min(100% - 2rem, 1098px);
     margin-inline: auto;
-    padding-block: 3rem;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
   }
 
   @media (max-width: 40rem) {
     .content-shell {
-      padding-block: 1.5rem;
+      padding-top: 1rem;
+      padding-bottom: 1.5rem;
     }
   }
 
@@ -52,8 +54,13 @@ const { title, description } = Astro.props;
   }
 
   .content-header {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid var(--color-border);
+  }
+
+  /* prose の見出しの margin-top（h2 で 2em）が .content-header の margin-bottom と相殺されて勝つため、本文の先頭要素の上の余白を 0 にして区切り線の下の空白を margin-bottom だけで決める */
+  .content-header + :global(*) {
+    margin-top: 0;
   }
 </style>
