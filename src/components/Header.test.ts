@@ -15,12 +15,13 @@ describe("Header", () => {
     expect(html).toMatch(/<a class="site-nav-brand"[^>]*href="\/"[^>]*>Openise News<\/a>/);
   });
 
-  it("ナビゲーションには News だけを表示する", () => {
+  it("ナビゲーションには News と About を表示する", () => {
     const nav = html.match(/<ul class="site-nav-list"[^>]*>([\s\S]*?)<\/ul>/)?.[1] ?? "";
     const labels = Array.from(nav.matchAll(/>([^<>]+)<\/a>/g), (match) => match[1]);
 
-    expect(labels).toEqual(["News"]);
+    expect(labels).toEqual(["News", "About"]);
     expect(nav).toMatch(/<a href="\/news\/"/);
+    expect(nav).toMatch(/<a href="\/about\/"/);
   });
 
   it("brand、primary nav、theme toggle 用の layout が定義される", () => {
@@ -39,6 +40,16 @@ describe("Header", () => {
     });
 
     expect(newsHtml).toMatch(/<a href="\/news\/" aria-current="page"[^>]*>News<\/a>/);
+  });
+
+  it("About の URL では About だけを current にする", async () => {
+    const container = await AstroContainer.create();
+    const aboutHtml = await container.renderToString(Header, {
+      request: new Request("http://localhost/about/"),
+    });
+
+    expect(aboutHtml).toMatch(/<a href="\/about\/" aria-current="page"[^>]*>About<\/a>/);
+    expect(aboutHtml).not.toMatch(/<a href="\/news\/" aria-current="page"/);
   });
 
   it("トップでは News を current にしない", () => {

@@ -1,7 +1,10 @@
 ---
 import { routes } from "../domain/routes";
 
-const navItems = [{ href: routes.news(), label: "News" }];
+const navItems = [
+  { href: routes.news(), label: "News" },
+  { href: routes.about(), label: "About" },
+];
 const currentPath = Astro.url.pathname;
 const isCurrent = (href: string) => currentPath.startsWith(href);
 ---

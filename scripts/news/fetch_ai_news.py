@@ -118,7 +118,6 @@ def hn_section(limit: int, now: datetime) -> list[str]:
 
     lines = [
         "## Hacker News",
-        "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*",
         "",
         "| # | タイトル | Points |",
         "|---|---|---|",
@@ -160,8 +159,6 @@ def reddit_section(limit: int, period: str, excluded_urls: set[str] = frozenset(
 
     lines = [
         REDDIT_HEADING,
-        f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)}（スコア順。"
-        f"各サブレディットから {REDDIT_MIN_POSTS_PER_SUBREDDIT} 件以上）*",
         "",
         "| # | タイトル | 順位 |",
         "|---|---|---|",

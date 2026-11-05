@@ -12,4 +12,8 @@ describe("routes", () => {
     expect(routes.news(2)).toBe("/news/2/");
     expect(routes.newsItem("20260828")).toBe("/news/20260828/");
   });
+
+  it("About の route を trailing slash 付きで生成する", () => {
+    expect(routes.about()).toBe("/about/");
+  });
 });

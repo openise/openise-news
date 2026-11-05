@@ -1,0 +1,88 @@
+---
+import NewsHeader from "../components/NewsHeader.astro";
+import ContentLayout from "../layouts/ContentLayout.astro";
+import { routes } from "../domain/routes";
+---
+
+<ContentLayout title="About" description="Openise News の仕組みと、各セクションの取得元・選び方・並び順の説明">
+  <NewsHeader slot="header" title="About" />
+
+  <p>
+    Openise News は、AI と開発ツールに関するニュースを毎日集め、その日の注目記事をピックアップして公開するサイトです。このページでは、News ができるまでの流れと、各セクションの見方を説明します。
+  </p>
+
+  <h2>仕組み</h2>
+  <ol>
+    <li>毎日 2:47 頃（日本時間）に GitHub Actions が動き、6 つの取得元から記事を集めて、その日の News を作ります</li>
+    <li>集めた記事を候補に、Cloudflare Workers AI が「今日のピックアップ」を選び、記事ごとに短いまとめを書きます</li>
+    <li>できた News をリポジトリに追加し、Cloudflare Workers で公開します</li>
+  </ol>
+  <p>
+    GitHub Actions の実行が遅れると、公開も遅れます。ピックアップを作れなかった日は、各セクションの表だけを公開します。過去の News は <a href={routes.news()}>News の一覧</a> から読めます。
+  </p>
+
+  <h2>今日のピックアップ</h2>
+  <p>各セクションの表に載った記事から、最大 10 件を選びます。選ぶときの基準は次のとおりです。</p>
+  <ul>
+    <li>数値の高さ: BM・いいね・Star・Points が高い記事を優先します。数値は同じ取得元の中で比べます</li>
+    <li>複数の取得元での話題: いくつもの取得元で取り上げられているトピックを優先します</li>
+    <li>多様性: 同じトピックの記事が重ならないようにします</li>
+    <li>技術寄り: Claude Code・AI・開発ツールなど、開発者向けの技術的な話題を優先します</li>
+  </ul>
+  <p>
+    過去 30 日のピックアップに選んだ記事は、候補から外します。並び順は AI が選んだ順です。各記事の下の「ソース」には、取得元とその取得元での数値を書いています（例:「はてなブックマーク — 99 users」「GitHub Trending — 524 stars today」）。まとめは AI がタイトル（GitHub Trending は説明文も）から書いたもので、本文を読んで書いたものではありません。
+  </p>
+
+  <h2>各セクション</h2>
+  <p>
+    どのセクションも最大 10 件を載せます。Reddit 以外のセクションは、タイトルに AI・開発ツール・プログラミングに関するキーワード（Claude・GPT・MCP・GitHub・Python など）を含む記事だけを選びます。各セクションの「過去 7 日に載せた記事」は、前日から 7 日前までの News の同じセクションに載った記事のことです。
+  </p>
+
+  <h3>はてなブックマーク</h3>
+  <ul>
+    <li>取得元: <a href="https://b.hatena.ne.jp/entrylist/it/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0">はてなブックマークの「プログラミング」タグの新着エントリー</a>（テクノロジーカテゴリ）</li>
+    <li>選び方: 新着エントリーの最大 50 件から、キーワードに合う記事を選びます。同じタイトルの記事と、過去 7 日に載せた記事を除きます</li>
+    <li>BM: その記事のブックマーク数</li>
+    <li>並び順: BM の多い順。同じ数のときは取得元のページの順</li>
+  </ul>
+
+  <h3>Zenn</h3>
+  <ul>
+    <li>取得元: <a href="https://zenn.dev/">Zenn</a> のトレンド（Daily ランキング）</li>
+    <li>選び方: ランキングの記事から、キーワードに合う記事を選びます。過去 7 日に載せた記事を除きます</li>
+    <li>いいね: その記事のいいね数</li>
+    <li>並び順: いいねの多い順</li>
+  </ul>
+
+  <h3>Qiita</h3>
+  <ul>
+    <li>取得元: <a href="https://qiita.com/">Qiita</a> の<a href="https://qiita.com/popular-items/feed.atom">人気記事のフィード</a></li>
+    <li>選び方: 人気記事から、キーワードに合う記事を選びます。人気記事をまとめた紹介記事（「今日のQiitaトレンド記事」）と、過去 7 日に載せた記事を除きます</li>
+    <li>数値の列はありません</li>
+    <li>並び順: フィードの順</li>
+  </ul>
+
+  <h3>GitHub Trending</h3>
+  <ul>
+    <li>取得元: <a href="https://github.com/trending?since=daily">GitHub Trending</a>（期間は Today）</li>
+    <li>選び方: リポジトリ名と説明文にキーワードを含むリポジトリを選びます</li>
+    <li>Star: その日に増えたスターの数（stars today）。取れなかったときは「—」</li>
+    <li>並び順: GitHub Trending のページの順</li>
+  </ul>
+
+  <h3>Hacker News</h3>
+  <ul>
+    <li>取得元: <a href="https://news.ycombinator.com/">Hacker News</a> の Show HN と Ask HN（<a href="https://hn.algolia.com/">Algolia HN Search</a> で検索）</li>
+    <li>選び方: 取得の 24 〜 48 時間前に投稿された Show HN と Ask HN をそれぞれ最大 50 件取り、合わせてからキーワードに合う投稿を選びます。投稿の直後はまだ Points が付いていないため、1 日たった投稿で比べています</li>
+    <li>Points: その投稿の Points（投票の数）</li>
+    <li>並び順: Points の多い順。同じ Points のときはコメントの多い順</li>
+  </ul>
+
+  <h3>Reddit</h3>
+  <ul>
+    <li>取得元: <a href="https://www.reddit.com/r/ClaudeCode/">r/ClaudeCode</a>・<a href="https://www.reddit.com/r/LocalLLaMA/">r/LocalLLaMA</a>・<a href="https://www.reddit.com/r/ChatGPTCoding/">r/ChatGPTCoding</a> の過去 24 時間の Top（スコア順）</li>
+    <li>選び方: キーワードでは絞り込みません。画像・動画だけの投稿、先に出た投稿と同じタイトルの投稿（クロスポスト）、過去 7 日に載せた投稿を除きます</li>
+    <li>数値の列はありません</li>
+    <li>並び順: スコアの高い順。ただし、スコア順だけで選ぶと勢いのあるサブレディットが枠を占めるため、各サブレディットの上位 2 件を先に選んでから、残りの枠をスコア順で埋めます</li>
+  </ul>
+</ContentLayout>
