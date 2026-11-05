@@ -1,6 +1,6 @@
 ---
 name: c-issue-fix
-description: "引数で渡された番号の GitHub Issues の issue を実装し、作業ブランチに push して `Closes #N` 付きの PR を作る。issue 本文の Acceptance criteria にチェックを付け、PR のリンクとテスト計画の確認結果を issue にコメントする。close 済みの issue に未チェックの項目が残っていれば、merge 後の確認を行って結果を issue に書き戻す。「#N を実装して」「issue N を直して」「#N の merge 後の確認をして」などと頼まれたときに使う。"
+description: "番号を渡した issue を実装して PR を作る。close 済みなら merge 後の確認をする。「#N を実装して」「#N の merge 後の確認をして」と頼まれたときに使う。"
 ---
 
 # c-issue-fix
