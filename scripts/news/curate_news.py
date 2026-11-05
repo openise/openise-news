@@ -125,8 +125,11 @@ def parse_candidates(body: str) -> list[dict]:
         elif source == "Zenn" and len(cells) >= 3:
             score = f"{cells[2]} likes"
         elif source == "Reddit" and len(cells) >= 3:
-            # 旧: | # | サブレディット | タイトル |
-            label = f"Reddit ({cells[1]})"
+            # 旧: | # | サブレディット | タイトル |、新: | # | タイトル | 順位 |。どちらも 3 列なので 2 列目で見分ける
+            if cells[1].startswith("r/"):
+                label = f"Reddit ({cells[1]})"
+            elif cells[2] != "—":
+                score = f"フィード {cells[2]} 位"
         elif source == "GitHub Trending" and len(cells) >= 3:
             # 旧: | # | リポジトリ | 説明 | 今日のスター |、新: | # | リポジトリ | Star |
             if len(cells) >= 4:

@@ -151,27 +151,27 @@ def reddit_section(limit: int, period: str, excluded_urls: set[str] = frozenset(
     # 1 件目が 2 件目より優先される
     rank_in_subreddit = {sub: 0 for sub in fetch_reddit.AI_SUBREDDITS}
     keyed = []
-    for feed_index, (sub, post) in enumerate(ranked):
+    for sub, feed_rank, post in ranked:
         priority = min(rank_in_subreddit[sub], REDDIT_MIN_POSTS_PER_SUBREDDIT)
         rank_in_subreddit[sub] += 1
-        keyed.append((priority, feed_index, post))
+        keyed.append((priority, feed_rank, post))
     chosen = sorted(keyed, key=lambda k: (k[0], k[1]))[:limit]
-    top = [post for _, _, post in sorted(chosen, key=lambda k: k[1])]
+    top = [(feed_rank, post) for _, feed_rank, post in sorted(chosen, key=lambda k: k[1])]
 
     lines = [
         REDDIT_HEADING,
         f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)}（スコア順。"
         f"各サブレディットから {REDDIT_MIN_POSTS_PER_SUBREDDIT} 件以上）*",
         "",
-        "| # | タイトル |",
-        "|---|---|",
+        "| # | タイトル | 順位 |",
+        "|---|---|---|",
     ]
     if top:
-        for i, p in enumerate(top, 1):
+        for i, (feed_rank, p) in enumerate(top, 1):
             link = render_external_link(p["title"], p["url"])
-            lines.append(f"| {i} | {link} |")
+            lines.append(f"| {i} | {link} | {feed_rank} |")
     else:
-        lines.append("| — | (取得できませんでした) |")
+        lines.append("| — | (取得できませんでした) | — |")
     lines.append("")
 
     return lines
