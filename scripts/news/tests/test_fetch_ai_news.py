@@ -788,7 +788,7 @@ def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossp
     with patch("fetch_reddit.fetch_url", return_value=feed):
         body = "\n".join(fetch_ai_news.reddit_section(10, "day"))
 
-    assert "*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding（スコア順。各サブレディットから 2 件以上）*" in body
+    assert "対象:" not in body
     assert "Meme" not in body
     assert body.count("Same title") == 1
     assert "| 2 | [Coding post](https://reddit.com/4) |" in body
@@ -940,11 +940,13 @@ def test_hn_section_queries_posts_created_24_to_48_hours_before_now():
     ]
 
 
-def test_hn_section_describes_target_period():
+def test_hn_section_has_no_target_line():
+    # 取得範囲は About ページで説明するため、表の上には書かない
     with patch("fetch_hn.fetch_hits_or_none", return_value=[]):
         lines = fetch_ai_news.hn_section(10, HN_NOW)
 
-    assert "*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*" in lines
+    assert lines[:2] == ["## Hacker News", ""]
+    assert not any("対象:" in line for line in lines)
 
 
 def test_hn_section_renders_title_and_points_columns():

@@ -10,4 +10,5 @@ export const routes = {
   home: () => BASE,
   news: (page?: number) => withPage("news", page),
   newsItem: (id: string) => path(`news/${id}`),
+  about: () => path("about"),
 };

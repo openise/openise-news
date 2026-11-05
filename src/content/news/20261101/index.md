@@ -79,7 +79,6 @@ createdDate: "20261101110001"
 <a id="hacker-newsai-関連-top-10"></a>
 
 ## Hacker News
-*対象: Show HN + Ask HN の合算ランキング*
 
 | # | 種別 | タイトル | Points | Comments |
 |---|---|---|---|---|
@@ -100,7 +99,6 @@ createdDate: "20261101110001"
 <a id="redditai-関連-subreddit-別ピックアップ-10-件"></a>
 
 ## Reddit
-*対象: r/ClaudeAI, r/OpenAI, r/GeminiAI から均等に抽出*
 
 | # | サブレディット | タイトル |
 |---|---|---|

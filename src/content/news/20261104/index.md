@@ -117,7 +117,6 @@ createdDate: "20261104233933"
 ---
 
 ## Hacker News
-*対象: Show HN + Ask HN の合算ランキング（24 〜 48 時間前の投稿）*
 
 | # | タイトル | Points |
 |---|---|---|
@@ -135,7 +134,6 @@ createdDate: "20261104233933"
 ---
 
 ## Reddit
-*対象: r/ClaudeCode, r/LocalLLaMA, r/ChatGPTCoding から均等に抽出*
 
 | # | タイトル |
 |---|---|
