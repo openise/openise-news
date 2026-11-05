@@ -17,6 +17,7 @@ Reddit サブレディット Top N 取得スクリプト
 
 import os
 import re
+from collections.abc import Callable
 import urllib.parse
 from datetime import datetime
 import argparse
@@ -94,7 +95,9 @@ def fetch_top_posts(subreddit: str, limit: int, period: str) -> list[dict]:
 REDDIT_MULTI_FETCH_SIZE = 100
 
 
-def fetch_top_posts_ranked(subreddits: list[str], limit: int, period: str) -> list[tuple[str, dict]]:
+def fetch_top_posts_ranked(
+    subreddits: list[str], limit: int, period: str, exclude: Callable[[dict], bool] | None = None,
+) -> list[tuple[str, dict]]:
     """複数 subreddit を 1 HTTP リクエストに統合して取得し、(subreddit, 投稿) を応答の順に返す。
 
     Reddit は 2026年6月に匿名 RSS アクセスを IP あたり約 1 QPM まで絞る仕様変更を
@@ -105,7 +108,7 @@ def fetch_top_posts_ranked(subreddits: list[str], limit: int, period: str) -> li
     応答は全 subreddit 横断のスコア順。各 subreddit から最大 limit 件を返す。
     画像・動画・ギャラリーだけの投稿と、先に出たものと同じタイトルの投稿（クロスポスト）
     は除き、空いた枠は同じ subreddit の次の投稿で埋める。応答はスコア順なので、
-    同じタイトルでは最もスコアの高い投稿が残る。
+    同じタイトルでは最もスコアの高い投稿が残る。exclude が True を返す投稿も同じように除く。
     """
     combined = "+".join(subreddits)
     fetch_size = max(limit * len(subreddits), REDDIT_MULTI_FETCH_SIZE)
@@ -132,6 +135,8 @@ def fetch_top_posts_ranked(subreddits: list[str], limit: int, period: str) -> li
         if _is_media_entry(entry):
             continue
         post = _parse_entry(entry)
+        if exclude is not None and exclude(post):
+            continue
         if post["title"] in seen_titles:
             continue
         seen_titles.add(post["title"])

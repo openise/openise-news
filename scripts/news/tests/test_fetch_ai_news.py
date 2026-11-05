@@ -794,6 +794,81 @@ def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossp
     assert "| 2 | [Coding post](https://reddit.com/4) |" in body
 
 
+def _reddit_feed(*rows: tuple[str, int]) -> bytes:
+    """(subreddit, 番号) の並びから、統合 URL の応答を模した Atom feed を作る（並び順がスコア順）。"""
+    entries = "".join(
+        f'<entry><category term="{sub}"/><title>AI post {sub} {i}</title>'
+        f'<link href="https://reddit.com/{sub}/{i}"/></entry>'
+        for sub, i in rows
+    )
+    return f'<feed xmlns="http://www.w3.org/2005/Atom">{entries}</feed>'.encode()
+
+
+def test_reddit_section_excludes_urls_listed_in_recent_reddit_tables_and_keeps_minimum(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## Hacker News\n\n| 1 | [Other](https://reddit.com/ChatGPTCoding/2) | 1 |\n\n---\n\n"
+        "## Reddit\n\n| # | タイトル |\n|---|---|\n"
+        "| 1 | [AI post ClaudeCode 1](https://reddit.com/ClaudeCode/1) |\n"
+    ))
+    _write_news(tmp_path, "20261028", "## Reddit\n\n| 1 | [AI post LocalLLaMA 2](https://reddit.com/LocalLLaMA/2) |\n")
+    feed = _reddit_feed(
+        ("ClaudeCode", 1), ("ClaudeCode", 2), ("ClaudeCode", 3), ("LocalLLaMA", 1),
+        ("LocalLLaMA", 2), ("LocalLLaMA", 3), ("ChatGPTCoding", 1), ("ChatGPTCoding", 2),
+    )
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.REDDIT_HEADING)
+    with patch("fetch_reddit.fetch_url", return_value=feed):
+        lines = fetch_ai_news.reddit_section(6, "day", excluded)
+
+    # 除いた ClaudeCode 1・LocalLLaMA 2 の代わりに各サブレディットの次の投稿で 2 件ずつ確保する。
+    # Hacker News の表にだけある ChatGPTCoding 2 は除かない
+    assert _reddit_urls(lines) == [
+        f"https://reddit.com/{sub}/{i}"
+        for sub, i in [
+            ("ClaudeCode", 2), ("ClaudeCode", 3), ("LocalLLaMA", 1),
+            ("LocalLLaMA", 3), ("ChatGPTCoding", 1), ("ChatGPTCoding", 2),
+        ]
+    ]
+
+
+def test_reddit_section_excludes_before_capping_each_subreddit_at_limit(tmp_path):
+    _write_news(tmp_path, "20261103", (
+        "## Reddit\n\n| 1 | [a](https://reddit.com/ClaudeCode/1) |\n| 2 | [b](https://reddit.com/ClaudeCode/2) |\n"
+    ))
+    feed = _reddit_feed(("ClaudeCode", 1), ("ClaudeCode", 2), ("ClaudeCode", 3), ("LocalLLaMA", 1), ("ChatGPTCoding", 1))
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.REDDIT_HEADING)
+    with patch("fetch_reddit.fetch_url", return_value=feed):
+        lines = fetch_ai_news.reddit_section(2, "day", excluded)
+
+    # 取得側で ClaudeCode を limit(2) 件で打ち切ってから除くと、ClaudeCode が 1 件も載らなくなる
+    assert _reddit_urls(lines) == ["https://reddit.com/ClaudeCode/3", "https://reddit.com/LocalLLaMA/1"]
+
+
+def test_reddit_section_outputs_without_past_news(tmp_path):
+    feed = _reddit_feed(("ClaudeCode", 1), ("LocalLLaMA", 1))
+    excluded = fetch_ai_news.recent_urls(_NOW, str(tmp_path), fetch_ai_news.REDDIT_HEADING)
+    with patch("fetch_reddit.fetch_url", return_value=feed):
+        lines = fetch_ai_news.reddit_section(10, "day", excluded)
+
+    assert _reddit_urls(lines) == ["https://reddit.com/ClaudeCode/1", "https://reddit.com/LocalLLaMA/1"]
+
+
+def test_build_markdown_excludes_reddit_posts_in_previous_news(tmp_path, monkeypatch):
+    monkeypatch.setattr(fetch_ai_news, "BASE_DIR", str(tmp_path))
+    _write_news(tmp_path, "20261103", "## Reddit\n\n| 1 | [a](https://reddit.com/ClaudeCode/1) |\n")
+    source_functions = [
+        "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits_or_none",
+        "fetch_github_trend.fetch_entries", "fetch_qiita.fetch_entries", "fetch_zenn.fetch_entries",
+    ]
+    with ExitStack() as stack:
+        for function in source_functions:
+            stack.enter_context(patch(function, return_value=[]))
+        stack.enter_context(patch("fetch_reddit.fetch_url", return_value=_reddit_feed(("ClaudeCode", 1), ("ClaudeCode", 2))))
+        markdown = fetch_ai_news.build_markdown(10, "day", _NOW)
+
+    assert "https://reddit.com/ClaudeCode/1" not in markdown
+    assert "https://reddit.com/ClaudeCode/2" in markdown
+
+
 # -------------------------
 # タイムゾーン
 # -------------------------

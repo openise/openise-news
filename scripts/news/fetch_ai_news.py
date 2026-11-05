@@ -36,6 +36,7 @@ HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
 ZENN_HEADING = "## Zenn"
 QIITA_HEADING = "## Qiita"
+REDDIT_HEADING = "## Reddit"
 REDDIT_MIN_POSTS_PER_SUBREDDIT = 2
 
 # render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
@@ -137,9 +138,12 @@ def hn_section(limit: int, now: datetime) -> list[str]:
     return lines
 
 
-def reddit_section(limit: int, period: str) -> list[str]:
-    """Reddit AI 関連サブレディット ピックアップ（RSS フィード経由、スコア順。各サブレディットに最低件数を確保）"""
-    ranked = fetch_reddit.fetch_top_posts_ranked(fetch_reddit.AI_SUBREDDITS, limit, period)
+def reddit_section(limit: int, period: str, excluded_urls: set[str] = frozenset()) -> list[str]:
+    """Reddit AI 関連サブレディット ピックアップ（RSS フィード経由、スコア順。各サブレディットに最低件数を確保、excluded_urls の投稿は除外）"""
+    # 取得側でサブレディットごとに limit 件で打ち切るため、打ち切りより前に除くよう判定を渡す
+    ranked = fetch_reddit.fetch_top_posts_ranked(
+        fetch_reddit.AI_SUBREDDITS, limit, period, exclude=lambda p: _is_excluded(p, excluded_urls),
+    )
 
     # スコア順だけで選ぶと、勢いのあるサブレディットが枠を占めてほかが 1 件も載らなく
     # なるため、各サブレディットの上位 REDDIT_MIN_POSTS_PER_SUBREDDIT 件を先に選ぶ。
@@ -155,7 +159,7 @@ def reddit_section(limit: int, period: str) -> list[str]:
     top = [post for _, _, post in sorted(chosen, key=lambda k: k[1])]
 
     lines = [
-        "## Reddit",
+        REDDIT_HEADING,
         f"*対象: {', '.join('r/' + s for s in fetch_reddit.AI_SUBREDDITS)}（スコア順。"
         f"各サブレディットから {REDDIT_MIN_POSTS_PER_SUBREDDIT} 件以上）*",
         "",
@@ -261,7 +265,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     hn = hn_section(limit, now)
 
     print("[INFO] Reddit 取得中 ...")
-    rd = reddit_section(limit, period)
+    rd = reddit_section(limit, period, recent_urls(now, BASE_DIR, REDDIT_HEADING))
 
     print("[INFO] GitHub Trending 取得中 ...")
     gt = github_trend_section(limit)
