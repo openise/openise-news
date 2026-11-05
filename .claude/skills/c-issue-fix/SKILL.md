@@ -1,9 +1,9 @@
 ---
-name: issue-fix
-description: 引数で渡された番号の GitHub Issues の issue を実装し、作業ブランチに push して `Closes #N` 付きの PR を作る。issue 本文の Acceptance criteria にチェックを付け、PR のリンクとテスト計画の確認結果を issue にコメントする。close 済みの issue に未チェックの項目が残っていれば、merge 後の確認を行って結果を issue に書き戻す。「#N を実装して」「issue N を直して」「#N の merge 後の確認をして」などと頼まれたときに使う。
+name: c-issue-fix
+description: "引数で渡された番号の GitHub Issues の issue を実装し、作業ブランチに push して `Closes #N` 付きの PR を作る。issue 本文の Acceptance criteria にチェックを付け、PR のリンクとテスト計画の確認結果を issue にコメントする。close 済みの issue に未チェックの項目が残っていれば、merge 後の確認を行って結果を issue に書き戻す。「#N を実装して」「issue N を直して」「#N の merge 後の確認をして」などと頼まれたときに使う。"
 ---
 
-# issue-fix
+# c-issue-fix
 
 引数の issue 番号（例: `3` や `#3`）の issue を実装して PR を作る。merge はしない。
 close 済みの issue に未チェックの項目が残っていれば、実装の代わりに「merge 後の確認」を行う。
@@ -48,7 +48,7 @@ close 済みの issue に未チェックの項目が残っていれば、実装�
    - テスト計画の確認結果。項目ごとに `- [x]` で書き、実行したコマンドと結果（件数など）を添える。merge 後にしか確かめられない項目は `- [ ]` のまま残す
 8. PR の URL を報告する
    - merge 後にしか確かめられない項目があれば、一覧にして伝える
-   - あわせて、merge して確かめたあとに `/issue-fix <番号>` を実行すれば、確認結果を issue に書き戻せると案内する
+   - あわせて、merge して確かめたあとに `/c-issue-fix <番号>` を実行すれば、確認結果を issue に書き戻せると案内する
 
 ## merge 後の確認
 

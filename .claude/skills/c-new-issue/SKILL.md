@@ -1,9 +1,9 @@
 ---
-name: new-issue
+name: c-new-issue
 description: 依頼内容から GitHub Issues の issue（タイトル・本文・ラベル）を下書きし、ユーザーの了承を得てから作成する。「issue を作って」「issue にして」などと頼まれたときに使う。
 ---
 
-# new-issue
+# c-new-issue
 
 依頼内容を `CLAUDE.md` の「issue の書式」に沿った issue にまとめ、了承を得てから openise/openise-news に作る。
 

@@ -56,5 +56,7 @@
 
 ## skill の使い分け
 
-- `new-issue`: 依頼内容を issue にするとき。タイトル・3 節の本文・ラベルを提案し、了承を得てから作る
-- `issue-fix`: 既存の issue を実装するとき。issue 番号を引数に渡す。実装・検証・commit・push・PR 作成・issue の Acceptance criteria のチェックとコメントまで行い、merge はしない。close 済みの issue に未チェックの項目が残っていれば、merge 後の確認を行って結果を issue に書き戻す（コードは変えない）
+このリポジトリの skill 名には接頭辞 `c-` を付ける（Claude Code の組み込み skill やユーザー側の skill と見分けるため）
+
+- `c-new-issue`: 依頼内容を issue にするとき。タイトル・3 節の本文・ラベルを提案し、了承を得てから作る
+- `c-issue-fix`: 既存の issue を実装するとき。issue 番号を引数に渡す。実装・検証・commit・push・PR 作成・issue の Acceptance criteria のチェックとコメントまで行い、merge はしない。close 済みの issue に未チェックの項目が残っていれば、merge 後の確認を行って結果を issue に書き戻す（コードは変えない）
