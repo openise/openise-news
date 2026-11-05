@@ -10,6 +10,7 @@ AI には記事の選定と記事ごとの短いまとめだけを任せ、書�
 
 環境変数:
     CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+    GITHUB_TOKEN（任意）: GitHub Trending の説明文を GitHub API で取るときに使う
 
 終了コード: 成功・スキップは 0 、失敗（ API エラー・応答の検証失敗など）は 1
 """
@@ -27,7 +28,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
-from constants import JST
+from constants import JST, USER_AGENT
 
 BASE_DIR = str(Path(__file__).resolve().parents[2] / "src/content/news")
 
@@ -37,6 +38,8 @@ MODEL = "@cf/google/gemma-4-26b-a4b-it"
 API_URL = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
 # 10 件 × 1 〜 2 文の日本語と JSON の記号が収まる量。思考の出力が返る場合もこの範囲に収める
 MAX_TOKENS = 1500
+GITHUB_REPO_API = "https://api.github.com/repos/{repo}"
+_GITHUB_REPO_RE = re.compile(r"https://github\.com/([A-Za-z0-9-]+/[A-Za-z0-9_.-]+)")
 MAX_PICKS = 10
 HISTORY_DAYS = 30
 PICKUP_HEADING = "## 今日のピックアップ"
@@ -69,6 +72,7 @@ SYSTEM_PROMPT = f"""あなたは AI ・開発ツールのニュースを選ぶ�
 
 まとめの書き方:
 - タイトル（ GitHub Trending は説明文も）から分かる範囲で、なぜ注目か・何が読みどころかを書く。そこに無い事実を作らない
+- GitHub Trending は、スター数や Trending に入ったことには触れず、説明文からプロジェクトが何をするものかを書く
 - 日本語と英単語・数字の間には半角スペースを入れる（例:「Claude Code の新機能」「100 件」）
 
 出力は次の形式の JSON 配列だけにしてください。前後に説明文やコードブロックを付けないでください。
@@ -133,7 +137,7 @@ def parse_candidates(body: str) -> list[dict]:
         elif source == "GitHub Trending" and len(cells) >= 3:
             # 旧: | # | リポジトリ | 説明 | 今日のスター |、新: | # | リポジトリ | Star |
             if len(cells) >= 4:
-                description = cells[2] or None
+                description = plain_title(cells[2]) or None
             if cells[-1] != "—":
                 score = f"{cells[-1]} stars today"
 
@@ -178,6 +182,42 @@ def recent_picked_urls(date: datetime, base_dir: str) -> set[str]:
 
 
 # -----------------------------------------------------------------------
+# GitHub API
+# -----------------------------------------------------------------------
+
+def fetch_repo_description(repo: str, token: str = "") -> str | None:
+    """GitHub API でリポジトリの説明文を取る。取れなければ None を返す（ピックアップは止めない）。"""
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
+    # 認証なしの上限（ IP ごとに 1 時間 60 回）は、 Actions の runner で他の利用と共有になりうるため
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(GITHUB_REPO_API.format(repo=repo), headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=20) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        print(f"[WARN] GitHub API: {repo} の説明文を取れません（ HTTP {e.code} ）— 説明文なしで続けます", file=sys.stderr)
+        return None
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        print(f"[WARN] GitHub API: {repo} の説明文を取れません（ {e} ）— 説明文なしで続けます", file=sys.stderr)
+        return None
+    description = data.get("description") if isinstance(data, dict) else None
+    if not isinstance(description, str):
+        return None
+    return " ".join(description.split()) or None
+
+
+def add_github_descriptions(candidates: list[dict], token: str = "") -> None:
+    """説明文の無い GitHub Trending の候補に、 GitHub API の説明文を付ける。"""
+    for c in candidates:
+        if c["source"] != "GitHub Trending" or c["description"]:
+            continue
+        match = _GITHUB_REPO_RE.fullmatch(c["url"])
+        if match:
+            c["description"] = fetch_repo_description(match.group(1), token)
+
+
+# -----------------------------------------------------------------------
 # Workers AI
 # -----------------------------------------------------------------------
 
@@ -185,7 +225,7 @@ def build_prompt(candidates: list[dict]) -> str:
     lines = ["候補:"]
     for c in candidates:
         score = f" ({c['score']})" if c["score"] else ""
-        description = f" — {plain_title(c['description'])}" if c["description"] else ""
+        description = f" — {c['description']}" if c["description"] else ""
         lines.append(f"{c['id']}. [{c['source']}] {plain_title(c['link_text'])}{score}{description}")
     return "\n".join(lines)
 
@@ -343,7 +383,7 @@ def write_atomic(path: str, text: str) -> None:
 # エントリーポイント
 # -----------------------------------------------------------------------
 
-def curate(date: datetime, base_dir: str, api_token: str, account_id: str) -> None:
+def curate(date: datetime, base_dir: str, api_token: str, account_id: str, github_token: str = "") -> None:
     """対象日の News にピックアップを付ける。失敗時は CurationError を送出し、ファイルは変えない。"""
     path = os.path.join(base_dir, date.strftime("%Y%m%d"), "index.md")
     if not os.path.exists(path):
@@ -365,6 +405,7 @@ def curate(date: datetime, base_dir: str, api_token: str, account_id: str) -> No
     print(f"[INFO] 候補 {len(candidates)} 件（過去 {HISTORY_DAYS} 日のピックアップ {len(history)} 件を除外対象）")
 
     if candidates:
+        add_github_descriptions(candidates, github_token)
         output, usage, diagnostics = call_workers_ai(build_prompt(candidates), api_token, account_id)
         print(
             f"[INFO] Workers AI ({MODEL}) トークン数: "
@@ -397,7 +438,7 @@ def main() -> int:
         return 1
 
     try:
-        curate(date, BASE_DIR, api_token, account_id)
+        curate(date, BASE_DIR, api_token, account_id, os.environ.get("GITHUB_TOKEN", ""))
     except CurationError as e:
         print(f"[ERROR] キュレーションに失敗しました: {e}", file=sys.stderr)
         return 1
