@@ -258,8 +258,9 @@ def test_fetch_top_posts_ranked_keeps_feed_order_across_subreddits():
     with patch("fetch_reddit.fetch_url", return_value=raw):
         ranked = fetch_reddit.fetch_top_posts_ranked(["ClaudeCode", "LocalLLaMA"], limit=10, period="day")
 
-    assert [(sub, p["title"]) for sub, p in ranked] == [
-        ("ClaudeCode", "post 1"), ("LocalLLaMA", "post 2"), ("ClaudeCode", "post 4"),
+    # 順位は応答での位置で、除いた画像の投稿・対象外のサブレディットの投稿も数える
+    assert [(sub, rank, p["title"]) for sub, rank, p in ranked] == [
+        ("ClaudeCode", 1, "post 1"), ("LocalLLaMA", 2, "post 2"), ("ClaudeCode", 4, "post 4"),
     ]
 
 

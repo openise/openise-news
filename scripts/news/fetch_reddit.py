@@ -97,8 +97,8 @@ REDDIT_MULTI_FETCH_SIZE = 100
 
 def fetch_top_posts_ranked(
     subreddits: list[str], limit: int, period: str, exclude: Callable[[dict], bool] | None = None,
-) -> list[tuple[str, dict]]:
-    """複数 subreddit を 1 HTTP リクエストに統合して取得し、(subreddit, 投稿) を応答の順に返す。
+) -> list[tuple[str, int, dict]]:
+    """複数 subreddit を 1 HTTP リクエストに統合して取得し、(subreddit, 順位, 投稿) を応答の順に返す。
 
     Reddit は 2026年6月に匿名 RSS アクセスを IP あたり約 1 QPM まで絞る仕様変更を
     行い、subreddit ごとに逐次リクエストすると 1 件目以外が HTTP 429 になる
@@ -109,6 +109,8 @@ def fetch_top_posts_ranked(
     画像・動画・ギャラリーだけの投稿と、先に出たものと同じタイトルの投稿（クロスポスト）
     は除き、空いた枠は同じ subreddit の次の投稿で埋める。応答はスコア順なので、
     同じタイトルでは最もスコアの高い投稿が残る。exclude が True を返す投稿も同じように除く。
+
+    順位は応答での位置（1 始まり）。除いた投稿も数えるので、Reddit 上の並びでの位置を表す。
     """
     combined = "+".join(subreddits)
     fetch_size = max(limit * len(subreddits), REDDIT_MULTI_FETCH_SIZE)
@@ -125,9 +127,9 @@ def fetch_top_posts_ranked(
         return []
 
     counts = {sub: 0 for sub in subreddits}
-    ranked: list[tuple[str, dict]] = []
+    ranked: list[tuple[str, int, dict]] = []
     seen_titles: set[str] = set()
-    for entry in root.findall("atom:entry", ns):
+    for feed_rank, entry in enumerate(root.findall("atom:entry", ns), 1):
         category_el = entry.find("atom:category", ns)
         subreddit = category_el.attrib.get("term", "") if category_el is not None else ""
         if subreddit not in counts or counts[subreddit] >= limit:
@@ -141,14 +143,14 @@ def fetch_top_posts_ranked(
             continue
         seen_titles.add(post["title"])
         counts[subreddit] += 1
-        ranked.append((subreddit, post))
+        ranked.append((subreddit, feed_rank, post))
     return ranked
 
 
 def fetch_top_posts_multi(subreddits: list[str], limit: int, period: str) -> dict[str, list[dict]]:
     """fetch_top_posts_ranked の結果を subreddit ごとにまとめる。エラー時は全 subreddit が空リストになる。"""
     results: dict[str, list[dict]] = {sub: [] for sub in subreddits}
-    for subreddit, post in fetch_top_posts_ranked(subreddits, limit, period):
+    for subreddit, _, post in fetch_top_posts_ranked(subreddits, limit, period):
         results[subreddit].append(post)
     return results
 

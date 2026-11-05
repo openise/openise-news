@@ -689,11 +689,11 @@ def test_build_markdown_completes_with_empty_reddit_title():
 # reddit_section
 # -------------------------
 
-def _ranked(*rows: tuple[str, int]) -> list[tuple[str, dict]]:
-    """(subreddit, 番号) の並びから、fetch_top_posts_ranked の戻り値（フィードの順）を作る。"""
+def _ranked(*rows: tuple[str, int]) -> list[tuple[str, int, dict]]:
+    """(subreddit, 番号) の並びから、fetch_top_posts_ranked の戻り値（フィードの順、順位は 1 始まりの位置）を作る。"""
     return [
-        (sub, {"title": f"AI post {sub} {i}", "url": f"https://reddit.com/{sub}/{i}"})
-        for sub, i in rows
+        (sub, feed_rank, {"title": f"AI post {sub} {i}", "url": f"https://reddit.com/{sub}/{i}"})
+        for feed_rank, (sub, i) in enumerate(rows, 1)
     ]
 
 
@@ -721,7 +721,7 @@ def test_reddit_section_includes_entries_from_every_subreddit():
         lines = fetch_ai_news.reddit_section(6, "day")
 
     body = "\n".join(lines)
-    assert "| # | タイトル |" in body
+    assert "| # | タイトル | 順位 |" in body
     for subreddit in fetch_ai_news.fetch_reddit.AI_SUBREDDITS:
         assert f"](https://reddit.com/{subreddit}/1) |" in body
 
@@ -793,6 +793,32 @@ def test_reddit_section_lists_developer_subreddits_and_excludes_media_and_crossp
     assert body.count("Same title") == 1
     assert "| 2 | [Coding post](https://reddit.com/4) |" in body
 
+
+def test_reddit_section_shows_feed_rank_before_exclusion():
+    media = "&lt;a href=&quot;https://i.redd.it/a.png&quot;&gt;[link]&lt;/a&gt;"
+    feed = (
+        '<feed xmlns="http://www.w3.org/2005/Atom">'
+        '<entry><category term="ClaudeCode"/><title>First</title><link href="https://reddit.com/1"/></entry>'
+        f'<entry><category term="ClaudeCode"/><title>Meme</title><content type="html">{media}</content>'
+        '<link href="https://reddit.com/2"/></entry>'
+        '<entry><category term="Other"/><title>Other sub</title><link href="https://reddit.com/3"/></entry>'
+        '<entry><category term="LocalLLaMA"/><title>Fourth</title><link href="https://reddit.com/4"/></entry>'
+        '</feed>'
+    ).encode()
+    with patch("fetch_reddit.fetch_url", return_value=feed):
+        lines = fetch_ai_news.reddit_section(10, "day")
+
+    # 除いた画像の投稿・対象外のサブレディットの投稿も数えるので、順位は詰まらない
+    assert "| # | タイトル | 順位 |" in lines
+    assert "| 1 | [First](https://reddit.com/1) | 1 |" in lines
+    assert "| 2 | [Fourth](https://reddit.com/4) | 4 |" in lines
+
+
+def test_reddit_section_keeps_three_columns_when_fetch_fails():
+    with patch("fetch_reddit.fetch_url", return_value=None):
+        lines = fetch_ai_news.reddit_section(10, "day")
+
+    assert "| — | (取得できませんでした) | — |" in lines
 
 def _reddit_feed(*rows: tuple[str, int]) -> bytes:
     """(subreddit, 番号) の並びから、統合 URL の応答を模した Atom feed を作る（並び順がスコア順）。"""

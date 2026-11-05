@@ -228,6 +228,24 @@ def test_curate_reads_tables_with_reduced_columns(news_dir):
     )
 
 
+def test_curate_reads_reddit_table_with_feed_rank_column(news_dir):
+    news = NEWS.split("## はてなブックマーク")[0] + (
+        "## Reddit\n\n| # | タイトル | 順位 |\n|---|---|---|\n"
+        "| 1 | [Reddit post](https://www.reddit.com/r/ClaudeCode/1) | 3 |\n"
+        "| 2 | [r/LocalLLaMA の話題](https://www.reddit.com/r/LocalLLaMA/2) | 21 |\n"
+    )
+    path = write_news(news_dir, "20261103", news)
+    output = json.dumps([{"id": 2, "summary": "まとめ"}], ensure_ascii=False)
+
+    fake = run_curate(news_dir, api_response(output))
+
+    assert json.loads(fake.requests[0].data)["messages"][1]["content"] == (
+        "候補:\n"
+        "1. [Reddit] Reddit post (フィード 3 位)\n"
+        "2. [Reddit] r/LocalLLaMA の話題 (フィード 21 位)"
+    )
+    assert "*ソース: Reddit — フィード 21 位*" in path.read_text(encoding="utf-8")
+
 def test_curate_reads_zenn_table_without_likes_column(news_dir):
     news = NEWS.split("## はてなブックマーク")[0] + (
         "## Zenn\n\n| # | タイトル |\n|---|---|\n| 1 | [Zenn 記事](https://zenn.dev/x/articles/1) |\n"
