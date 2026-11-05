@@ -1,5 +1,11 @@
 # openise-news
 
+## Daily News の定期起動
+
+毎日 00:47 JST に Cloudflare Workers の Cron Triggers から GitHub Actions の
+Daily News を起動する。設定・切り替え・確認・復旧の手順は
+[運用手順](docs/daily-news-trigger.md)を参照する。
+
 ## Workers AI の使用量
 
 「今日のピックアップ」の作成（`scripts/news/curate_news.py`）では Cloudflare Workers AI を使っている。実行回数や候補の数を増やすときは、次の目安で無料枠に収まるかを判断する。
