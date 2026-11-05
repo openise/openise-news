@@ -13,7 +13,7 @@ import { routes } from "../domain/routes";
 
   <h2>仕組み</h2>
   <ol>
-    <li>毎日 2:47 頃（日本時間）に GitHub Actions が動き、6 つの取得元から記事を集めて、その日の News を作ります</li>
+    <li>毎日 0:47 頃（日本時間）に GitHub Actions が動き、6 つの取得元から記事を集めて、その日の News を作ります</li>
     <li>集めた記事を候補に、Cloudflare Workers AI が「今日のピックアップ」を選び、記事ごとに短いまとめを書きます</li>
     <li>できた News をリポジトリに追加し、Cloudflare Workers で公開します</li>
   </ol>
