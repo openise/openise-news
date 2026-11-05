@@ -36,6 +36,7 @@ HISTORY_DAYS = 7
 HB_HEADING = "## はてなブックマーク"
 ZENN_HEADING = "## Zenn"
 QIITA_HEADING = "## Qiita"
+HN_HEADING = "## Hacker News"
 REDDIT_HEADING = "## Reddit"
 REDDIT_MIN_POSTS_PER_SUBREDDIT = 2
 
@@ -102,8 +103,8 @@ def hb_section(limit: int, excluded_urls: set[str] = frozenset()) -> list[str]:
     return lines
 
 
-def hn_section(limit: int, now: datetime) -> list[str]:
-    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N（24 〜 48 時間前の投稿）"""
+def hn_section(limit: int, now: datetime, excluded_urls: set[str] = frozenset()) -> list[str]:
+    """Hacker News AI 関連 Show HN / Ask HN 合算 Top N（24 〜 48 時間前の投稿、excluded_urls の投稿は除外）"""
     # 投稿直後は points が付いていないため、1 日たった記事で比べる
     since = int((now - timedelta(hours=48)).timestamp())
     until = int((now - timedelta(hours=24)).timestamp())
@@ -112,12 +113,17 @@ def hn_section(limit: int, now: datetime) -> list[str]:
     show_raw = fetch_hn.fetch_hits_or_none("show_hn", since, limit=50, until=until)
     ask_raw  = fetch_hn.fetch_hits_or_none("ask_hn",  since, limit=50, until=until)
     hits = fetch_hn.filter_by_keywords((show_raw or []) + (ask_raw or []), fetch_hn.AI_KEYWORDS)
+    # 取得した時刻が日によってずれると 24 〜 48 時間前の範囲が前日と重なるため、前日までの表に載った投稿を除く
+    hits = [
+        h for h in hits
+        if not _is_excluded({"title": h.get("title") or "", "url": fetch_hn.HN_BASE + h.get("objectID", "")}, excluded_urls)
+    ]
 
     # Points 降順 → Comments 降順で Top N
     ranked = sorted(hits, key=lambda h: (-(h.get("points") or 0), -(h.get("num_comments") or 0)))[:limit]
 
     lines = [
-        "## Hacker News",
+        HN_HEADING,
         "",
         "| # | タイトル | Points |",
         "|---|---|---|",
@@ -267,7 +273,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     hb = hb_section(limit, recent_urls(now, BASE_DIR, HB_HEADING))
 
     print("[INFO] Hacker News 取得中 ...")
-    hn = hn_section(limit, now)
+    hn = hn_section(limit, now, recent_urls(now, BASE_DIR, HN_HEADING))
 
     print("[INFO] Reddit 取得中 ...")
     rd = reddit_section(limit, period, recent_urls(now, BASE_DIR, REDDIT_HEADING))
