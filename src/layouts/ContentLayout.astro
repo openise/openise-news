@@ -34,7 +34,7 @@ const { title, description } = Astro.props;
 
 <style>
   .content-shell {
-    /* 本文の左端 max(16px, (画面幅 - 1098px) / 2) は openise-daily ・ openise-wiki ・ openise-theme で揃えている（daily: src/layouts/BaseLayout.astro の <main>、wiki: src/layouts/ContentLayout.astro の .content-shell と src/styles/global.css の .page-shell、theme: src/styles/global.css の .site-main） */
+    /* 外枠の左端 max(16px, (画面幅 - 1098px) / 2) は openise-daily ・ openise-wiki ・ openise-theme で揃えている（daily: src/layouts/BaseLayout.astro の <main>、wiki: src/layouts/ContentLayout.astro の .content-shell と src/styles/global.css の .page-shell、theme: src/styles/global.css の .site-main）。本文（.content-article）はこの外枠の中で中央に置く */
     width: min(100% - 2rem, 1098px);
     margin-inline: auto;
     padding-top: 1.5rem;
@@ -49,8 +49,10 @@ const { title, description } = Astro.props;
   }
 
   /* 本文の最大幅は openise-daily ・ openise-wiki ・ openise-theme で 50rem に揃えている（daily: src/layouts/ContentLayout.astro、wiki: src/layouts/ContentLayout.astro、theme: src/styles/global.css） */
+  /* 外枠より狭い本文を左に寄せると右に空白ができ、右パネルがあるように見えるため中央に置く */
   .content-article {
     max-width: 50rem;
+    margin-inline: auto;
   }
 
   .content-header {

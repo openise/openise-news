@@ -14,6 +14,11 @@ describe("ARTICLE_TYPOGRAPHY_CLASSES", () => {
     expect(classes).toContain("sm:prose-base");
   });
 
+  it("uses prose-lg from 1280px for full HD displays", () => {
+    const classes = ARTICLE_TYPOGRAPHY_CLASSES.split(" ");
+    expect(classes).toContain("xl:prose-lg");
+  });
+
   it("does not rely on prose-invert since theme toggling uses a data-theme attribute, not Tailwind's dark: variant", () => {
     expect(ARTICLE_TYPOGRAPHY_CLASSES).not.toContain("prose-invert");
   });
