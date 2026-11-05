@@ -1,6 +1,6 @@
 ---
 name: c-new-issue
-description: "依頼内容から issue（タイトル・本文・ラベル）を下書きし、了承を得てから作る。"
+description: "依頼内容から GitHub Issues の issue（タイトル・本文・ラベル）を下書きし、了承を得てから作る。"
 ---
 
 # c-new-issue
