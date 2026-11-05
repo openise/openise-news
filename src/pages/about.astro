@@ -73,7 +73,7 @@ import { routes } from "../domain/routes";
   <h3>Hacker News</h3>
   <ul>
     <li>取得元: <a href="https://news.ycombinator.com/">Hacker News</a> の Show HN と Ask HN（<a href="https://hn.algolia.com/">Algolia HN Search</a> で検索）</li>
-    <li>選び方: 取得の 24 〜 48 時間前に投稿された Show HN と Ask HN をそれぞれ最大 50 件取り、合わせてからキーワードに合う投稿を選びます。過去 7 日に載せた投稿を除きます。投稿の直後はまだ Points が付いていないため、1 日たった投稿で比べています</li>
+    <li>選び方: News の日付の前々日（日本時間の 0:00 〜 24:00）に投稿された Show HN と Ask HN をそれぞれ最大 50 件取り、合わせてからキーワードに合う投稿を選びます。過去 7 日に載せた投稿を除きます。投稿の直後はまだ Points が付いていないため、前日ではなく前々日の投稿で比べています</li>
     <li>Points: その投稿の Points（投票の数）</li>
     <li>並び順: Points の多い順。同じ Points のときはコメントの多い順</li>
   </ul>

@@ -4,7 +4,7 @@ import re
 import sys
 import pytest
 from contextlib import ExitStack
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -1041,18 +1041,56 @@ def test_github_trend_section_keeps_empty_result_placeholder():
 HN_NOW = datetime(2026, 11, 4, 2, 47, tzinfo=constants.JST)
 
 
-def test_hn_section_queries_posts_created_24_to_48_hours_before_now():
+def _hn_query_range(now: datetime) -> tuple[int, int]:
+    """hn_section が Algolia に渡す numericFilters の (since, until) を返す。"""
+    with patch("fetch_hn.fetch_url", return_value=b'{"hits": []}') as mock_fetch:
+        fetch_ai_news.hn_section(10, now)
+    ranges = {
+        tuple(int(v) for v in re.search(r"created_at_i%3E(\d+)%2Ccreated_at_i%3C%3D(\d+)", call.args[0]).groups())
+        for call in mock_fetch.call_args_list
+    }
+    assert len(ranges) == 1
+    return ranges.pop()
+
+
+def test_hn_section_queries_posts_created_from_two_days_before_to_previous_day():
     with patch("fetch_hn.fetch_url", return_value=b'{"hits": []}') as mock_fetch:
         fetch_ai_news.hn_section(10, HN_NOW)
 
-    since = int((HN_NOW - timedelta(hours=48)).timestamp())
-    until = int((HN_NOW - timedelta(hours=24)).timestamp())
+    # 11/04 の News は 11/02 0:00 以上・11/03 0:00 未満（JST）の投稿。API の条件は「since より後・until 以下」
+    start = int(datetime(2026, 11, 2, tzinfo=constants.JST).timestamp())
+    end = int(datetime(2026, 11, 3, tzinfo=constants.JST).timestamp())
+    since, until = start - 1, end - 1
     urls = [call.args[0] for call in mock_fetch.call_args_list]
     assert urls == [
         "https://hn.algolia.com/api/v1/search"
         f"?tags={tag}&numericFilters=created_at_i%3E{since}%2Ccreated_at_i%3C%3D{until}&hitsPerPage=50"
         for tag in ["show_hn", "ask_hn"]
     ]
+
+
+@pytest.mark.parametrize("hour, minute", [(0, 0), (0, 47), (14, 22), (23, 59)])
+def test_hn_section_query_range_does_not_depend_on_time_of_day(hour, minute):
+    now = datetime(2026, 11, 4, hour, minute, tzinfo=constants.JST)
+    assert _hn_query_range(now) == _hn_query_range(HN_NOW)
+
+
+def test_hn_section_query_range_uses_jst_date_for_non_jst_now():
+    # 11/03 16:00 UTC は 11/04 1:00 JST なので、11/04 の News と同じ範囲になる
+    now = datetime(2026, 11, 3, 16, 0, tzinfo=timezone.utc)
+    assert _hn_query_range(now) == _hn_query_range(HN_NOW)
+
+
+# 前日より遅く取得するとすき間が、早く取得すると重なりができていた時刻の組み合わせ
+@pytest.mark.parametrize("previous, current", [
+    (datetime(2026, 11, 3, 18, 1, tzinfo=constants.JST), datetime(2026, 11, 4, 23, 39, tzinfo=constants.JST)),
+    (datetime(2026, 11, 3, 23, 39, tzinfo=constants.JST), datetime(2026, 11, 4, 14, 22, tzinfo=constants.JST)),
+])
+def test_hn_section_query_ranges_of_consecutive_days_are_contiguous(previous, current):
+    _, until_previous = _hn_query_range(previous)
+    since_current, _ = _hn_query_range(current)
+    # 前日の範囲は until 以下、当日の範囲は since より後なので、同じ値ならすき間も重なりもない
+    assert since_current == until_previous
 
 
 def test_hn_section_has_no_target_line():
