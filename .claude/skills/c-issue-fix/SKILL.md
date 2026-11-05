@@ -1,6 +1,6 @@
 ---
 name: c-issue-fix
-description: "番号を渡した issue を実装して PR を作る。close 済みなら merge 後の確認をする。「#N を実装して」「#N の merge 後の確認をして」と頼まれたときに使う。"
+description: "番号を渡した issue を実装して PR を作る。close 済みなら merge 後の確認をする。"
 ---
 
 # c-issue-fix
