@@ -105,18 +105,30 @@ def parse_candidates(body: str) -> list[dict]:
     candidates = []
     seen_urls = set()
     source = None
+    hn_columns = None
     for line in body.splitlines():
         if line.startswith("## "):
             source = next((label for prefix, label in SOURCES.items() if line.startswith(prefix)), None)
+            hn_columns = None
+            continue
+        if source == "Hacker News" and line.startswith("| # |"):
+            hn_columns = 5 if "| 種別 |" in line else 3
             continue
         if source is None or not _ROW_RE.match(line):
             continue
         link = _LINK_RE.search(line)
         if not link or link.group(2) in seen_urls:
             continue
-        seen_urls.add(link.group(2))
-
         cells = [c.strip() for c in _CELL_SPLIT_RE.split(line)[1:-1]]
+        if source in ("はてなブックマーク", "Hacker News"):
+            # ヘッダーのない旧形式でも、タイトルが 3 列目なら 5 列必要。
+            required_columns = 3
+            if source == "Hacker News":
+                required_columns = hn_columns or (3 if len(cells) > 1 and _LINK_RE.search(cells[1]) else 5)
+            if len(cells) < required_columns:
+                print(f"[WARN] {source}: 候補行の列数が不足しています — スキップします", file=sys.stderr)
+                continue
+        seen_urls.add(link.group(2))
         label = source
         score = None
         description = None
@@ -298,7 +310,8 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
             raise CurationError(f"Workers AI の応答にモデルの出力がありません（ {diagnostics} ）") from e
     if isinstance(output, str):
         output = _THINK_RE.sub("", output)
-    return output, result.get("usage") or {}, diagnostics
+    usage = result.get("usage")
+    return output, usage if isinstance(usage, dict) else {}, diagnostics
 
 
 def parse_picks(output: object, candidates: list[dict]) -> list[dict]:

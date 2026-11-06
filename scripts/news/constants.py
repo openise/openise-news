@@ -238,7 +238,10 @@ def render_external_link(title: str, url: str) -> str:
     """
     safe_title = render_table_text(title)
 
-    parsed = urllib.parse.urlparse(url)
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except ValueError:
+        return safe_title
     if parsed.scheme in ("http", "https") and parsed.netloc:
         return f"[{safe_title}]({_sanitize_url(parsed)})"
     return safe_title

@@ -55,6 +55,12 @@ def test_fetch_entries_returns_empty_list_for_empty_feed():
     assert entries == []
 
 
+def test_fetch_entries_warns_and_skips_non_utf8_response(capsys):
+    with patch("fetch_github_trend.fetch_url", return_value=b"\xff"):
+        assert fetch_github_trend.fetch_entries() == []
+    assert "[WARN] GitHub Trend: response の decode 失敗" in capsys.readouterr().err
+
+
 TRENDING_HTML = """<!DOCTYPE html>
 <html><body>
 <a href="/outside/repo">外部カード</a>

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """fetch_ai_news.py のセクション生成テスト"""
 import re
+import json
+import runpy
 import sys
 import pytest
 from contextlib import ExitStack
@@ -40,7 +42,7 @@ def test_main_does_not_overwrite_existing_output(tmp_path, monkeypatch, capsys, 
         argv.extend(["--output", str(output)])
     with patch.object(sys, "argv", argv), \
             patch("fetch_ai_news.build_markdown", side_effect=AssertionError("取得してはいけない")):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 0
     assert output.read_text() == original
     assert "[WARN]" in capsys.readouterr().err
 
@@ -59,6 +61,7 @@ def _install_save_failure(monkeypatch, output, temporary_path, failure_stage):
             if failure_stage == "write":
                 raise OSError(28, "No space left on device")
             self.path.write_text(content, encoding="utf-8")
+            return len(content)
 
         def __exit__(self, *_args):
             if failure_stage == "close":
@@ -93,23 +96,24 @@ def test_main_preserves_existing_bytes_when_forced_write_fails(
     with patch.object(
         sys, "argv", ["fetch_ai_news.py", "--output", str(output), "--force"]
     ), patch("fetch_ai_news.build_markdown", return_value="新しい News\n"):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 1
 
     assert output.read_bytes() == original
     assert not temporary_path.exists()
     assert "保存に失敗しました" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("failure_stage", ["write", "close"])
 def test_main_does_not_publish_partial_new_output_on_io_failure(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, failure_stage
 ):
     output = tmp_path / "index.md"
     temporary_path = tmp_path / ".index.md.partial"
-    _install_save_failure(monkeypatch, output, temporary_path, "write")
+    _install_save_failure(monkeypatch, output, temporary_path, failure_stage)
 
     with patch.object(sys, "argv", ["fetch_ai_news.py", "--output", str(output)]), \
             patch("fetch_ai_news.build_markdown", return_value="新しい News\n"):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 1
 
     assert not output.exists()
     assert not temporary_path.exists()
@@ -128,27 +132,32 @@ def test_main_preserves_existing_bytes_when_forced_close_fails(
     with patch.object(
         sys, "argv", ["fetch_ai_news.py", "--output", str(output), "--force"]
     ), patch("fetch_ai_news.build_markdown", return_value="新しい News\n"):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 1
 
     assert output.read_bytes() == original
     assert not temporary_path.exists()
     assert "保存に失敗しました" in capsys.readouterr().err
 
 
-def test_main_preserves_existing_bytes_when_forced_publish_fails(
-    tmp_path, capsys
+@pytest.mark.parametrize("force", [False, True])
+def test_main_preserves_output_when_publish_fails(
+    tmp_path, capsys, force
 ):
     output = tmp_path / "index.md"
     original = "手動編集された News\n".encode("utf-8")
-    output.write_bytes(original)
+    if force:
+        output.write_bytes(original)
 
     with patch.object(
-        sys, "argv", ["fetch_ai_news.py", "--output", str(output), "--force"]
+        sys, "argv", ["fetch_ai_news.py", "--output", str(output)] + (["--force"] if force else [])
     ), patch("fetch_ai_news.build_markdown", return_value="新しい News\n"), \
-            patch.object(fetch_ai_news.os, "replace", side_effect=OSError(5, "Input/output error")):
-        fetch_ai_news.main()
+            patch.object(fetch_ai_news.os, "replace" if force else "link", side_effect=OSError(5, "Input/output error")):
+        assert fetch_ai_news.main() == 1
 
-    assert output.read_bytes() == original
+    if force:
+        assert output.read_bytes() == original
+    else:
+        assert not output.exists()
     assert not list(tmp_path.glob(".index.md.*.tmp"))
     assert "保存に失敗しました" in capsys.readouterr().err
 
@@ -158,7 +167,7 @@ def test_main_overwrites_existing_output_with_force(tmp_path):
     output.write_text("手動編集")
     with patch.object(sys, "argv", ["fetch_ai_news.py", "--output", str(output), "--force"]), \
             patch("fetch_ai_news.build_markdown", return_value="新しい News\n"):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 0
     assert output.read_text() == "新しい News\n"
 
 
@@ -166,7 +175,7 @@ def test_main_saves_complete_output_and_cleans_up_temporary_files(tmp_path):
     output = tmp_path / "index.md"
     with patch.object(sys, "argv", ["fetch_ai_news.py", "--output", str(output)]), \
             patch("fetch_ai_news.build_markdown", return_value="新しい News\n"):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 0
     assert output.read_text() == "新しい News\n"
     assert not list(tmp_path.glob(".index.md.*.tmp"))
 
@@ -180,9 +189,25 @@ def test_main_preserves_output_created_during_fetch(tmp_path, capsys):
 
     with patch.object(sys, "argv", ["fetch_ai_news.py", "--output", str(output)]), \
             patch("fetch_ai_news.build_markdown", side_effect=generate_news):
-        fetch_ai_news.main()
+        assert fetch_ai_news.main() == 0
     assert output.read_text() == "別実行の News\n"
     assert "[WARN]" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_cli_exits_with_status_for_existing_file_or_directory_creation_failure(tmp_path, fails, capsys):
+    output = tmp_path / "index.md"
+    output.write_text("既存の News\n", encoding="utf-8")
+    argv = ["fetch_ai_news.py"] if fails else ["fetch_ai_news.py", "--output", str(output)]
+    with patch.object(sys, "argv", argv), \
+            patch("os.makedirs", side_effect=OSError("保存先を作れません")), \
+            pytest.raises(SystemExit) as exc:
+        runpy.run_path(fetch_ai_news.__file__, run_name="__main__")
+
+    assert exc.value.code == (1 if fails else 0)
+    assert output.read_text(encoding="utf-8") == "既存の News\n"
+    stderr = capsys.readouterr().err
+    assert ("[ERROR] 保存に失敗しました" if fails else "[WARN]") in stderr
 
 
 def _entry(title, url, count):
@@ -756,6 +781,43 @@ def test_build_markdown_continues_other_feeds_after_invalid_hn_response():
 
     assert "## Zenn" in markdown
     assert "[Claude AI follow up](https://zenn.dev/example/articles/hn-continued)" in markdown
+
+
+def test_hn_section_skips_invalid_articles_before_filtering_and_ranking(capsys):
+    hits = [
+        {"title": "Claude invalid points", "objectID": "bad", "points": "42"},
+        {"title": ["Claude invalid title"], "objectID": "bad-title"},
+        {"title": "Claude lower comments", "objectID": "1", "points": 42, "num_comments": 1},
+        {"title": "Claude highest", "objectID": "2", "points": 43, "num_comments": None},
+        {"title": "Claude higher comments", "objectID": "3", "points": 42, "num_comments": 2},
+    ]
+    with patch("fetch_hn.fetch_url", side_effect=[json.dumps({"hits": hits}).encode(), b'{"hits": []}']):
+        rows = [line for line in fetch_ai_news.hn_section(10, _NOW) if line.startswith("| ")][1:]
+
+    assert rows == [
+        "| 1 | [Claude highest](https://news.ycombinator.com/item?id=2) | 43 |",
+        "| 2 | [Claude higher comments](https://news.ycombinator.com/item?id=3) | 42 |",
+        "| 3 | [Claude lower comments](https://news.ycombinator.com/item?id=1) | 42 |",
+    ]
+    assert capsys.readouterr().err.count("[WARN] Hacker News") == 2
+
+
+def test_build_markdown_continues_after_non_utf8_github_trending_response(capsys):
+    with ExitStack() as stack:
+        for function in [
+            "fetch_hb.fetch_entrylist_tag_entries", "fetch_hn.fetch_hits_or_none",
+            "fetch_reddit.fetch_top_posts_ranked", "fetch_qiita.fetch_entries",
+        ]:
+            stack.enter_context(patch(function, return_value=[]))
+        stack.enter_context(patch("fetch_github_trend.fetch_url", return_value=b"\xff"))
+        stack.enter_context(patch("fetch_zenn.fetch_entries", return_value=[{
+            "title": "Claude AI follow up", "url": "https://zenn.dev/example/articles/continued", "liked_count": 1,
+        }]))
+        markdown = fetch_ai_news.build_markdown(10, "day", _NOW)
+
+    assert "## GitHub Trending\n\n| # | リポジトリ | Star |\n|---|---|---|\n| — | (取得できませんでした) | — |" in markdown
+    assert "[Claude AI follow up](https://zenn.dev/example/articles/continued)" in markdown
+    assert "[WARN] GitHub Trend: response の decode 失敗" in capsys.readouterr().err
 
 
 def test_build_markdown_completes_with_empty_reddit_title():

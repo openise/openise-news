@@ -278,6 +278,11 @@ def test_render_external_link_builds_normal_link_for_https_url():
     assert result == "[Normal Title](https://example.com/article)"
 
 
+@pytest.mark.parametrize("url", ["https://[broken", "https://example.com：80/path"])
+def test_render_external_link_returns_safe_title_when_url_cannot_be_parsed(url):
+    assert constants.render_external_link("<script>[記事] |\n次", url) == "&lt;script&gt;\\[記事\\] \\| 次"
+
+
 def test_render_external_link_escapes_pipe_for_table():
     result = constants.render_external_link("col1 | col2", "https://example.com")
     assert "\\|" in result
