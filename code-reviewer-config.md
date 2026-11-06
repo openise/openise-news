@@ -40,10 +40,11 @@ Python の開発依存は `requirements-dev.txt` に定義される。`npm run p
 | `src/scripts/client/*.ts` | 隣接する `*.test.ts` または `*.dom.test.ts` |
 | `src/components/*.astro`、`src/layouts/*.astro` | 隣接する `*.test.ts`。CSP は `src/layouts/headers.test.ts` も確認 |
 | `src/pages/index.astro`、`about.astro`、`404.astro` | `src/pages/_index.test.ts`、`src/pages/_about.test.ts`、`test/pages.test.ts` |
-| `src/pages/news/[...page].astro`、`[id].astro` | `src/pages/news/_news-index.test.ts`、`_news-detail.test.ts` |
+| `src/pages/news/[...page].astro`、`[id].astro` | `src/pages/news/_news-index.test.ts`、`_news-detail.test.ts`、実際の経路生成・描画は `test/news-build.test.ts` |
+| `src/content.config.ts` の loader | `test/news-build.test.ts`（代表データをビルドし、ID に対応する経路と詳細本文を確認） |
 | `workers/daily-news-trigger/index.ts` | `workers/daily-news-trigger/index.test.ts` |
 
-Astro ページのテスト名の先頭 `_` はページとして生成されないための配置であり、命名不一致として扱わない。`?raw` によるソース文字列の検証と Astro Container による描画結果の検証を区別する。前者が存在しても実際の生成経路・表示の検証済みとはしない。content loader と Pagination の振る舞いの検証不足は issue #152 で扱う。
+Astro ページのテスト名の先頭 `_` はページとして生成されないための配置であり、命名不一致として扱わない。`?raw` によるソース文字列の検証と Astro Container による描画結果の検証を区別する。前者が存在しても実際の生成経路・表示の検証済みとはしない。content loader の ID と News の経路・描画は `test/news-build.test.ts`、Pagination のリンク・無効状態は `src/components/Pagination.test.ts` で確認する。
 
 ## 名前と中間変数
 
