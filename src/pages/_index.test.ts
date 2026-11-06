@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { createComponent, render } from "astro/runtime/server/index.js";
-import { Window } from "happy-dom";
+import { Window, type Document } from "happy-dom";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import Homepage from "./index.astro";
 
@@ -22,7 +22,7 @@ async function renderHomepage(): Promise<Document> {
   const container = await AstroContainer.create();
   const html = await container.renderToString(Homepage);
   const window = new Window();
-  return new window.DOMParser().parseFromString(html, "text/html") as unknown as Document;
+  return new window.DOMParser().parseFromString(html, "text/html");
 }
 
 async function renderHomepageWithNews(news: typeof collections.news): Promise<Document> {

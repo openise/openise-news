@@ -13,7 +13,7 @@ function executeThemeBootstrap(
   storage: { getItem: () => string | null },
   systemTheme: "light" | "dark",
 ): Record<string, string> {
-  const documentElement = { dataset: {} as Record<string, string> };
+  const documentElement: { dataset: Record<string, string> } = { dataset: {} };
   new Function("document", "localStorage", "window", themeBootstrap)(
     { documentElement },
     storage,

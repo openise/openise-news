@@ -23,13 +23,13 @@ describe("ContentCard", () => {
     expect(html).not.toContain("content-card-description");
   });
 
-  it("heading level を prop で指定した見出しを描画する", async () => {
+  it.each([2, 3, 4, 5, 6])("heading level %i を prop で指定した見出しを描画する", async (headingLevel) => {
     const container = await AstroContainer.create();
     const headingHtml = await container.renderToString(ContentCard, {
-      props: { ...props, headingLevel: 4 },
+      props: { ...props, headingLevel },
     });
 
-    expect(headingHtml).toMatch(/<h4[^>]*><span[^>]*>固定 News<\/span><\/h4>/);
+    expect(headingHtml).toMatch(new RegExp(`<h${headingLevel}[^>]*><span[^>]*>固定 News</span></h${headingLevel}>`));
   });
 
   it("heading level を指定しない場合は h3 を描画する", () => {
@@ -45,10 +45,13 @@ describe("ContentCard", () => {
   it("リンク名はタイトルのみにする", async () => {
     const doc = new Window().document;
     doc.body.innerHTML = html;
-    const link = doc.querySelector("a")!;
+    const link = doc.querySelector("a");
+    if (!link) throw new Error("ContentCard のリンクが見つかりません");
+    const labelledBy = link.getAttribute("aria-labelledby");
+    if (!labelledBy) throw new Error("ContentCard のリンクに aria-labelledby がありません");
 
     expect(link.getAttribute("href")).toBe("/news/20261011/");
-    expect(doc.getElementById(link.getAttribute("aria-labelledby")!)?.textContent).toBe("固定 News");
+    expect(doc.getElementById(labelledBy)?.textContent).toBe("固定 News");
   });
 
   it("同じ href の card でも id が一意になる", async () => {
