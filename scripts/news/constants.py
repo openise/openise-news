@@ -130,22 +130,6 @@ def parse_xml(xml_bytes: bytes, source_label: str) -> ET.Element | None:
         return None
 
 
-def parse_rss_items(root: ET.Element, limit: int = 0) -> list[dict]:
-    """RSS 2.0 形式（<channel><item>）から title / url を取り出す。limit=0 のとき全件返す。"""
-    channel = root.find("channel")
-    items = channel.findall("item") if channel is not None else root.findall("item")
-
-    results = []
-    for item in (items if limit == 0 else items[:limit]):
-        title_el = item.find("title")
-        link_el = item.find("link")
-        title = title_el.text.strip() if title_el is not None and title_el.text else ""
-        url = link_el.text.strip() if link_el is not None and link_el.text else ""
-        results.append({"title": title or "(タイトルなし)", "url": url})
-
-    return results
-
-
 def fetch_feed_entries(
     url: str,
     parser: Callable[[ET.Element, int], list[dict]],

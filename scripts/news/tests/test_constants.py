@@ -4,6 +4,7 @@ import sys
 import http.client
 import urllib.error
 import urllib.parse
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -108,6 +109,22 @@ RSS_FEED = b"""<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>
 """
+
+
+def _parse_rss_items(root: ET.Element, limit: int = 0) -> list[dict]:
+    """RSS 2.0 形式（<channel><item>）から title / url を取り出す。limit=0 のとき全件返す。"""
+    channel = root.find("channel")
+    items = channel.findall("item") if channel is not None else root.findall("item")
+
+    results = []
+    for item in (items if limit == 0 else items[:limit]):
+        title_el = item.find("title")
+        link_el = item.find("link")
+        title = title_el.text.strip() if title_el is not None and title_el.text else ""
+        url = link_el.text.strip() if link_el is not None and link_el.text else ""
+        results.append({"title": title or "(タイトルなし)", "url": url})
+
+    return results
 
 
 # -------------------------
@@ -435,7 +452,7 @@ def test_parse_xml_does_not_reject_doctype_text_inside_cdata():
     root = constants.parse_xml(feed, "Test")
 
     assert root is not None
-    assert constants.parse_rss_items(root) == [
+    assert _parse_rss_items(root) == [
         {"title": "HTML5 の <!DOCTYPE html> について", "url": "https://example.com"}
     ]
 
@@ -447,7 +464,7 @@ def test_parse_xml_does_not_reject_doctype_text_inside_cdata():
 def test_parse_rss_items_extracts_title_and_url_from_channel():
     root = constants.parse_xml(RSS_FEED, "Test")
 
-    assert constants.parse_rss_items(root, limit=0) == [
+    assert _parse_rss_items(root, limit=0) == [
         {"title": "Claude Code Tips", "url": "https://example.com/1"},
         {"title": "Docker Compose", "url": "https://example.com/2"},
     ]
@@ -456,7 +473,7 @@ def test_parse_rss_items_extracts_title_and_url_from_channel():
 def test_parse_rss_items_respects_limit():
     root = constants.parse_xml(RSS_FEED, "Test")
 
-    entries = constants.parse_rss_items(root, limit=1)
+    entries = _parse_rss_items(root, limit=1)
 
     assert [e["title"] for e in entries] == ["Claude Code Tips"]
 
@@ -468,7 +485,7 @@ def test_parse_rss_items_respects_limit():
 def test_fetch_feed_entries_parses_response_with_given_parser():
     with patch("constants.fetch_url", return_value=RSS_FEED):
         entries = constants.fetch_feed_entries(
-            "https://example.com/feed", constants.parse_rss_items, "Test", limit=1
+            "https://example.com/feed", _parse_rss_items, "Test", limit=1
         )
 
     assert entries == [{"title": "Claude Code Tips", "url": "https://example.com/1"}]
@@ -479,7 +496,7 @@ def test_fetch_feed_entries_filters_by_keywords_before_applying_limit():
 
     def spy_parser(root, limit):
         captured_limits.append(limit)
-        return constants.parse_rss_items(root, limit)
+        return _parse_rss_items(root, limit)
 
     with patch("constants.fetch_url", return_value=RSS_FEED):
         entries = constants.fetch_feed_entries(
@@ -494,7 +511,7 @@ def test_fetch_feed_entries_filters_by_keywords_before_applying_limit():
 def test_fetch_feed_entries_returns_empty_list_when_fetch_fails():
     with patch("constants.fetch_url", return_value=None):
         entries = constants.fetch_feed_entries(
-            "https://example.com/feed", constants.parse_rss_items, "Test"
+            "https://example.com/feed", _parse_rss_items, "Test"
         )
 
     assert entries == []
@@ -503,7 +520,7 @@ def test_fetch_feed_entries_returns_empty_list_when_fetch_fails():
 def test_fetch_feed_entries_returns_empty_list_on_broken_xml(capsys):
     with patch("constants.fetch_url", return_value=b"<rss><item>unclosed"):
         entries = constants.fetch_feed_entries(
-            "https://example.com/feed", constants.parse_rss_items, "Test"
+            "https://example.com/feed", _parse_rss_items, "Test"
         )
 
     assert entries == []
