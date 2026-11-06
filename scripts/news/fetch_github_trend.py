@@ -95,7 +95,12 @@ def fetch_entries(limit: int = 10, keywords: list[str] | None = None) -> list[di
     if raw is None:
         return []
 
-    entries = parse_trending_html(raw.decode("utf-8"))
+    try:
+        body = raw.decode("utf-8")
+    except UnicodeDecodeError as e:
+        print(f"[WARN] GitHub Trend: response の decode 失敗 {e} — スキップします", file=sys.stderr)
+        return []
+    entries = parse_trending_html(body)
     if not entries:
         print("[WARN] GitHub Trend: リポジトリのカードを認識できません — スキップします", file=sys.stderr)
         return []

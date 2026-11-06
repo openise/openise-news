@@ -36,6 +36,29 @@ def test_fetch_hits_returns_hits_from_response():
     assert result == hits
 
 
+@pytest.mark.parametrize("invalid", [
+    None, 42,
+    {"title": 42}, {"title": []},
+    {"objectID": 123}, {"objectID": None},
+    {"points": "42"}, {"points": []}, {"points": True}, {"points": 1.5},
+    {"num_comments": "7"}, {"num_comments": {}}, {"num_comments": False},
+])
+def test_fetch_hits_skips_invalid_articles_and_keeps_valid_ones(invalid, capsys):
+    valid = {"title": "Show HN: AI tool", "objectID": "123", "points": 42, "num_comments": 7}
+    payload = json.dumps({"hits": [invalid, valid]}).encode()
+    with patch("fetch_hn.fetch_url", return_value=payload):
+        assert fetch_hn.fetch_hits_or_none("show_hn", since=0, limit=10) == [valid]
+    assert "[WARN] Hacker News: 記事の形式が不正" in capsys.readouterr().err
+
+
+def test_fetch_hits_preserves_missing_fields_and_nullable_title_and_counts():
+    hits = [{}, {"title": None, "objectID": "123", "points": None, "num_comments": None}]
+    with patch("fetch_hn.fetch_url", return_value=json.dumps({"hits": hits}).encode()):
+        result = fetch_hn.fetch_hits_or_none("show_hn", since=0, limit=10)
+    assert result == hits
+    assert fetch_hn.section_md("🙋", "Ask HN", result)[-1].endswith("| 0 | 0 |")
+
+
 def test_fetch_hits_sends_the_shared_user_agent(monkeypatch):
     monkeypatch.setattr(fetch_hn, "USER_AGENT", "TestAgent/9.9")
 

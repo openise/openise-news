@@ -54,11 +54,22 @@ def fetch_hits_or_none(tag: str, since: int, limit: int, until: int | None = Non
         return None
 
     hits = data.get("hits")
-    if not isinstance(hits, list) or not all(isinstance(hit, dict) for hit in hits):
+    if not isinstance(hits, list):
         print("[WARN] Hacker News: hits の形式が不正です — スキップします", file=sys.stderr)
         return None
 
-    return hits
+    valid_hits = []
+    for hit in hits:
+        if (
+            not isinstance(hit, dict)
+            or (hit.get("title") is not None and not isinstance(hit["title"], str))
+            or not isinstance(hit.get("objectID", ""), str)
+            or any(hit.get(key) is not None and type(hit[key]) is not int for key in ("points", "num_comments"))
+        ):
+            print("[WARN] Hacker News: 記事の形式が不正です — スキップします", file=sys.stderr)
+            continue
+        valid_hits.append(hit)
+    return valid_hits
 
 
 def section_md(emoji: str, label: str, hits: list[dict]) -> list[str]:

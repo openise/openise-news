@@ -244,6 +244,42 @@ def test_curate_reads_tables_with_reduced_columns(news_dir):
     )
 
 
+@pytest.mark.parametrize(("source", "header", "bad_row", "good_row", "score"), [
+    ("はてなブックマーク", "| # | タイトル | BM |", "| 1 | {link} |", "| 2 | {link} | 20 |", "20 users"),
+    ("はてなブックマーク", "| # | タイトル | ブックマーク数 |", "| 1 | {link} |", "| 2 | {link} | 20 |", "20 users"),
+    ("Hacker News", "| # | タイトル | Points |", "| 1 | {link} |", "| 2 | {link} | 42 |", "42 points"),
+    ("Hacker News", "| # | 種別 | タイトル | Points | Comments |", "| 1 | Show HN | {link} | 42 |", "| 2 | Show HN | {link} | 42 | 7 |", "42 points"),
+    ("Hacker News", "| # | 種別 | タイトル | Points | Comments |", "| 1 | Show HN | {link} |", "| 2 | Show HN | {link} | 42 | 7 |", "42 points"),
+    ("Hacker News", "", "| 1 | Show HN | {link} | 42 |", "| 2 | Show HN | {link} | 42 | 7 |", "42 points"),
+])
+def test_parse_candidates_skips_short_rows_without_losing_valid_duplicate(
+    source, header, bad_row, good_row, score, capsys,
+):
+    link = "[記事](https://example.com/article)"
+    body = f"## {source}\n{header}\n{bad_row.format(link=link)}\n{good_row.format(link=link)}\n"
+
+    candidates = curate_news.parse_candidates(body)
+
+    assert len(candidates) == 1
+    assert candidates[0]["id"] == 1
+    assert candidates[0]["url"] == "https://example.com/article"
+    assert candidates[0]["score"] == score
+    assert f"[WARN] {source}: 候補行の列数が不足" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("usage_fields", [{"usage": [1]}, {"usage": "unknown"}, {"usage": None}, {}])
+def test_curate_saves_valid_picks_when_usage_is_not_a_dictionary(news_dir, usage_fields, capsys):
+    path = write_news(news_dir, "20261103", NEWS)
+    response = {"success": True, "result": {
+        "response": [{"id": 1, "summary": "有効なまとめ"}], **usage_fields,
+    }}
+
+    run_curate(news_dir, io.BytesIO(json.dumps(response).encode()))
+
+    assert "有効なまとめ" in path.read_text(encoding="utf-8")
+    assert "入力 ? / 出力 ? / 合計 ?" in capsys.readouterr().out
+
+
 def test_curate_reads_reddit_table_with_feed_rank_column(news_dir):
     news = NEWS.split("## はてなブックマーク")[0] + (
         "## Reddit\n\n| # | タイトル | 順位 |\n|---|---|---|\n"

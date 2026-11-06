@@ -326,7 +326,7 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
 # エントリーポイント
 # -----------------------------------------------------------------------
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
         description="はてなブックマーク・HN・Reddit の AI 関連 Top N をまとめて Markdown で保存"
     )
@@ -343,12 +343,16 @@ def main():
         output = args.output
     else:
         out_dir = os.path.join(BASE_DIR, now.strftime("%Y%m%d"))
-        os.makedirs(out_dir, exist_ok=True)
         output = os.path.join(out_dir, "index.md")
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+        except OSError as error:
+            print(f"[ERROR] 保存に失敗しました: {output} ({error})", file=sys.stderr)
+            return 1
 
     if not args.force and os.path.exists(output):
         print(f"[WARN] 出力ファイルが既に存在します: {output} — 上書きには --force を指定してください", file=sys.stderr)
-        return
+        return 0
 
     md = build_markdown(args.limit, args.period, now)
     temporary_path = None
@@ -373,12 +377,12 @@ def main():
                 os.link(temporary_path, output)
             except FileExistsError:
                 print(f"[WARN] 出力ファイルが既に存在します: {output} — 上書きには --force を指定してください", file=sys.stderr)
-                return
+                return 0
             os.unlink(temporary_path)
             temporary_path = None
     except OSError as error:
         print(f"[ERROR] 保存に失敗しました: {output} ({error})", file=sys.stderr)
-        return
+        return 1
     finally:
         if temporary_path is not None:
             try:
@@ -388,7 +392,8 @@ def main():
             except OSError as error:
                 print(f"[ERROR] 一時ファイルの削除に失敗しました: {temporary_path} ({error})", file=sys.stderr)
     print(f"✅ 保存完了: {output}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
