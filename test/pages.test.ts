@@ -1,4 +1,5 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { version as astroVersion } from 'astro/package.json';
 import { expect, test } from 'vitest';
 import { Window } from 'happy-dom';
 import About from '../src/pages/about.astro';
@@ -46,7 +47,7 @@ test.each([
   const document = new window.DOMParser().parseFromString(html, 'text/html');
   expect(document.querySelectorAll('footer')).toHaveLength(1);
   expect(document.querySelector('footer')?.textContent?.trim()).toBe(
-    '© 2026 Openise News. Built with Astro 7.4.4.',
+    `© 2026 Openise News. Built with Astro ${astroVersion}.`,
   );
   expect(document.querySelector('main')?.nextElementSibling?.tagName).toBe('FOOTER');
 });
