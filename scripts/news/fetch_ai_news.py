@@ -12,7 +12,6 @@ fetch_ai_news.py - はてなブックマーク・Hacker News・Reddit・GitHub T
 
 import sys
 import os
-import re
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -29,6 +28,7 @@ import fetch_github_trend
 import fetch_qiita
 import fetch_zenn
 from constants import AI_KEYWORDS, JST, filter_by_keywords, render_external_link
+from news_markdown import MARKDOWN_LINK_RE, extract_link_urls, iter_history_news
 
 LIMIT = 10
 # はてなブックマークのタグ別新着エントリーのページにも Zenn の Daily ランキングにも Qiita の人気記事フィードにも数日分の記事が並ぶため、
@@ -41,10 +41,6 @@ HN_HEADING = "## Hacker News"
 REDDIT_HEADING = "## Reddit"
 REDDIT_MIN_POSTS_PER_SUBREDDIT = 2
 
-# render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
-_LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
-
-
 # -----------------------------------------------------------------------
 # セクション生成
 # -----------------------------------------------------------------------
@@ -52,24 +48,20 @@ _LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
 def recent_urls(now: datetime, base_dir: str, heading: str) -> set[str]:
     """対象日の前日から 7 日前まで（両端を含む）の News で、heading の表にある URL を返す。"""
     urls = set()
-    for days in range(1, HISTORY_DAYS + 1):
-        path = os.path.join(base_dir, (now - timedelta(days=days)).strftime("%Y%m%d"), "index.md")
-        if not os.path.exists(path):
-            continue
+    for _, text in iter_history_news(now, base_dir, HISTORY_DAYS):
         in_section = False
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("## "):
-                    in_section = line.startswith(heading)
-                    continue
-                if in_section:
-                    urls.update(m.group(2) for m in _LINK_RE.finditer(line))
+        for line in text.split("\n"):
+            if line.startswith("## "):
+                in_section = line.startswith(heading)
+                continue
+            if in_section:
+                urls.update(extract_link_urls(line))
     return urls
 
 
 def _is_excluded(entry: dict, excluded_urls: set[str]) -> bool:
     # 過去の表と同じ形で比べるため、表に書き出すときのリンクから URL を取り出す
-    link = _LINK_RE.fullmatch(render_external_link(entry["title"], entry["url"]))
+    link = MARKDOWN_LINK_RE.fullmatch(render_external_link(entry["title"], entry["url"]))
     return bool(link) and link.group(2) in excluded_urls
 
 

@@ -24,11 +24,12 @@ import sys
 import tempfile
 import urllib.error
 import urllib.request
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 from constants import JST, USER_AGENT
+from news_markdown import MARKDOWN_LINK_RE, extract_link_urls, iter_history_news
 
 BASE_DIR = str(Path(__file__).resolve().parents[2] / "src/content/news")
 
@@ -54,8 +55,6 @@ SOURCES = {
     "## Zenn": "Zenn",
 }
 
-# render_external_link が出力するリンク。タイトル内の ] は \] にエスケープ済み
-_LINK_RE = re.compile(r"\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)")
 _CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")
 _ROW_RE = re.compile(r"^\| \d+ \|")
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
@@ -106,7 +105,7 @@ def _parse_source_row(source: str, cells: list[str], hn_columns: int | None) -> 
         # ヘッダーのない旧形式でも、タイトルが 3 列目なら 5 列必要。
         required_columns = 3
         if source == "Hacker News":
-            required_columns = hn_columns or (3 if len(cells) > 1 and _LINK_RE.search(cells[1]) else 5)
+            required_columns = hn_columns or (3 if len(cells) > 1 and MARKDOWN_LINK_RE.search(cells[1]) else 5)
         if len(cells) < required_columns:
             print(f"[WARN] {source}: 候補行の列数が不足しています — スキップします", file=sys.stderr)
             return None
@@ -155,7 +154,7 @@ def parse_candidates(body: str) -> list[dict]:
             continue
         if source is None or not _ROW_RE.match(line):
             continue
-        link = _LINK_RE.search(line)
+        link = MARKDOWN_LINK_RE.search(line)
         if not link or link.group(2) in seen_urls:
             continue
         cells = [c.strip() for c in _CELL_SPLIT_RE.split(line)[1:-1]]
@@ -182,22 +181,18 @@ def picked_urls(text: str) -> set[str]:
             in_pickup = line.strip() == PICKUP_HEADING
             continue
         if in_pickup:
-            urls.update(m.group(2) for m in _LINK_RE.finditer(line))
+            urls.update(extract_link_urls(line))
     return urls
 
 
 def recent_picked_urls(date: datetime, base_dir: str) -> set[str]:
     """対象日の前日から 30 日前まで（両端を含む）の News でピックアップ済みの URL を返す。"""
     urls = set()
-    for days in range(1, HISTORY_DAYS + 1):
-        path = os.path.join(base_dir, (date - timedelta(days=days)).strftime("%Y%m%d"), "index.md")
-        if not os.path.exists(path):
-            continue
-        with open(path, encoding="utf-8") as f:
-            try:
-                urls |= picked_urls(f.read())
-            except CurationError:
-                print(f"[WARN] frontmatter が無いため重複除外の対象外にします: {path}", file=sys.stderr)
+    for path, text in iter_history_news(date, base_dir, HISTORY_DAYS):
+        try:
+            urls |= picked_urls(text)
+        except CurationError:
+            print(f"[WARN] frontmatter が無いため重複除外の対象外にします: {path}", file=sys.stderr)
     return urls
 
 
