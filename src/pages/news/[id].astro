@@ -3,6 +3,9 @@ import { getCollection, getEntry, render } from "astro:content";
 import NewsHeader from "../../components/NewsHeader.astro";
 import ContentLayout from "../../layouts/ContentLayout.astro";
 
+// params だけを使うページも Container API で検証できるよう、空の props の型を明示する。
+interface Props {}
+
 const id = Astro.params.id ?? "";
 const item = await getEntry("news", id);
 if (!item) return new Response(null, { status: 404 });
