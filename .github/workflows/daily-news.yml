@@ -91,7 +91,18 @@ jobs:
           git commit -m "$title"
           # 前回の失敗でブランチが残っていても再実行できるように上書きする
           git push --force origin "$branch"
-          gh pr create --base main --head "$branch" --title "$title" --body "workflow（Daily News）が自動で作成した PR です。"
+          if ! pr_number=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty'); then
+            echo "::error::既存 PR の取得に失敗しました"
+            exit 1
+          fi
+          if [ -z "$pr_number" ]; then
+            if ! gh pr create --base main --head "$branch" --title "$title" --body "workflow（Daily News）が自動で作成した PR です。"; then
+              echo "::error::PR の作成に失敗しました"
+              exit 1
+            fi
+          else
+            echo "既存 PR #$pr_number を再利用します"
+          fi
           gh pr merge "$branch" --squash --delete-branch
 
       - name: キュレーションの失敗を workflow の失敗にする
