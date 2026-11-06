@@ -100,6 +100,45 @@ def plain_title(link_text: str) -> str:
     return html.unescape(re.sub(r"\\(.)", r"\1", link_text))
 
 
+def _parse_source_row(source: str, cells: list[str], hn_columns: int | None) -> dict | None:
+    """新旧の表の列を解釈し、候補のソース表記・スコア・説明を返す。列不足なら除外する。"""
+    if source in ("はてなブックマーク", "Hacker News"):
+        # ヘッダーのない旧形式でも、タイトルが 3 列目なら 5 列必要。
+        required_columns = 3
+        if source == "Hacker News":
+            required_columns = hn_columns or (3 if len(cells) > 1 and _LINK_RE.search(cells[1]) else 5)
+        if len(cells) < required_columns:
+            print(f"[WARN] {source}: 候補行の列数が不足しています — スキップします", file=sys.stderr)
+            return None
+    label = source
+    score = None
+    description = None
+    # 列を減らす前（2026-11 初めまで）の News にも、ピックアップを付け直せるように列数で読み分ける
+    if source == "はてなブックマーク":
+        score = f"{cells[2]} users"
+    elif source == "Hacker News":
+        # 旧: | # | 種別 | タイトル | Points | Comments |、新: | # | タイトル | Points |
+        score = f"{cells[3] if len(cells) >= 5 else cells[2]} points"
+    elif source == "Zenn" and len(cells) >= 3:
+        score = f"{cells[2]} likes"
+    elif source == "Qiita" and len(cells) >= 3 and cells[2] != "—":
+        # 旧: | # | タイトル |、新: | # | タイトル | いいね |
+        score = f"{cells[2]} likes"
+    elif source == "Reddit" and len(cells) >= 3:
+        # 旧: | # | サブレディット | タイトル |、新: | # | タイトル | 順位 |。どちらも 3 列なので 2 列目で見分ける
+        if cells[1].startswith("r/"):
+            label = f"Reddit ({cells[1]})"
+        elif cells[2] != "—":
+            score = f"フィード {cells[2]} 位"
+    elif source == "GitHub Trending" and len(cells) >= 3:
+        # 旧: | # | リポジトリ | 説明 | 今日のスター |、新: | # | リポジトリ | Star |
+        if len(cells) >= 4:
+            description = plain_title(cells[2]) or None
+        if cells[-1] != "—":
+            score = f"{cells[-1]} stars today"
+    return {"source": label, "score": score, "description": description}
+
+
 def parse_candidates(body: str) -> list[dict]:
     """本文の各 source の表から候補を取り出す。同じ URL は最初の 1 件だけ残す。"""
     candidates = []
@@ -120,47 +159,13 @@ def parse_candidates(body: str) -> list[dict]:
         if not link or link.group(2) in seen_urls:
             continue
         cells = [c.strip() for c in _CELL_SPLIT_RE.split(line)[1:-1]]
-        if source in ("はてなブックマーク", "Hacker News"):
-            # ヘッダーのない旧形式でも、タイトルが 3 列目なら 5 列必要。
-            required_columns = 3
-            if source == "Hacker News":
-                required_columns = hn_columns or (3 if len(cells) > 1 and _LINK_RE.search(cells[1]) else 5)
-            if len(cells) < required_columns:
-                print(f"[WARN] {source}: 候補行の列数が不足しています — スキップします", file=sys.stderr)
-                continue
+        details = _parse_source_row(source, cells, hn_columns)
+        if details is None:
+            continue
         seen_urls.add(link.group(2))
-        label = source
-        score = None
-        description = None
-        # 列を減らす前（2026-11 初めまで）の News にも、ピックアップを付け直せるように列数で読み分ける
-        if source == "はてなブックマーク":
-            score = f"{cells[2]} users"
-        elif source == "Hacker News":
-            # 旧: | # | 種別 | タイトル | Points | Comments |、新: | # | タイトル | Points |
-            score = f"{cells[3] if len(cells) >= 5 else cells[2]} points"
-        elif source == "Zenn" and len(cells) >= 3:
-            score = f"{cells[2]} likes"
-        elif source == "Qiita" and len(cells) >= 3 and cells[2] != "—":
-            # 旧: | # | タイトル |、新: | # | タイトル | いいね |
-            score = f"{cells[2]} likes"
-        elif source == "Reddit" and len(cells) >= 3:
-            # 旧: | # | サブレディット | タイトル |、新: | # | タイトル | 順位 |。どちらも 3 列なので 2 列目で見分ける
-            if cells[1].startswith("r/"):
-                label = f"Reddit ({cells[1]})"
-            elif cells[2] != "—":
-                score = f"フィード {cells[2]} 位"
-        elif source == "GitHub Trending" and len(cells) >= 3:
-            # 旧: | # | リポジトリ | 説明 | 今日のスター |、新: | # | リポジトリ | Star |
-            if len(cells) >= 4:
-                description = plain_title(cells[2]) or None
-            if cells[-1] != "—":
-                score = f"{cells[-1]} stars today"
-
         candidates.append({
             "id": len(candidates) + 1,
-            "source": label,
-            "score": score,
-            "description": description,
+            **details,
             "link_text": link.group(1),
             "url": link.group(2),
         })

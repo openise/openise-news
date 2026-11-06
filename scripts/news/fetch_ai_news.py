@@ -323,6 +323,48 @@ def build_markdown(limit: int, period: str, now: datetime) -> str:
     return "\n".join(lines) + "\n"
 
 
+def save_news_atomic(output: str, markdown: str, force: bool = False) -> int:
+    """一時ファイルから News を公開する。成功・競合によるスキップは 0、保存失敗は 1 を返す。"""
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=os.path.dirname(output) or ".",
+            prefix=f".{os.path.basename(output)}.",
+            suffix=".tmp",
+            delete=False,
+        ) as f:
+            temporary_path = f.name
+            if f.write(markdown) != len(markdown):
+                raise OSError("内容を完全に書き込めませんでした")
+
+        if force:
+            os.replace(temporary_path, output)
+            temporary_path = None
+        else:
+            try:
+                os.link(temporary_path, output)
+            except FileExistsError:
+                print(f"[WARN] 出力ファイルが既に存在します: {output} — 上書きには --force を指定してください", file=sys.stderr)
+                return 0
+            os.unlink(temporary_path)
+            temporary_path = None
+    except OSError as error:
+        print(f"[ERROR] 保存に失敗しました: {output} ({error})", file=sys.stderr)
+        return 1
+    finally:
+        if temporary_path is not None:
+            try:
+                os.unlink(temporary_path)
+            except FileNotFoundError:
+                pass
+            except OSError as error:
+                print(f"[ERROR] 一時ファイルの削除に失敗しました: {temporary_path} ({error})", file=sys.stderr)
+    print(f"✅ 保存完了: {output}")
+    return 0
+
+
 # -----------------------------------------------------------------------
 # エントリーポイント
 # -----------------------------------------------------------------------
@@ -357,44 +399,7 @@ def main() -> int:
         return 0
 
     md = build_markdown(args.limit, args.period, now)
-    temporary_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            dir=os.path.dirname(output) or ".",
-            prefix=f".{os.path.basename(output)}.",
-            suffix=".tmp",
-            delete=False,
-        ) as f:
-            temporary_path = f.name
-            if f.write(md) != len(md):
-                raise OSError("内容を完全に書き込めませんでした")
-
-        if args.force:
-            os.replace(temporary_path, output)
-            temporary_path = None
-        else:
-            try:
-                os.link(temporary_path, output)
-            except FileExistsError:
-                print(f"[WARN] 出力ファイルが既に存在します: {output} — 上書きには --force を指定してください", file=sys.stderr)
-                return 0
-            os.unlink(temporary_path)
-            temporary_path = None
-    except OSError as error:
-        print(f"[ERROR] 保存に失敗しました: {output} ({error})", file=sys.stderr)
-        return 1
-    finally:
-        if temporary_path is not None:
-            try:
-                os.unlink(temporary_path)
-            except FileNotFoundError:
-                pass
-            except OSError as error:
-                print(f"[ERROR] 一時ファイルの削除に失敗しました: {temporary_path} ({error})", file=sys.stderr)
-    print(f"✅ 保存完了: {output}")
-    return 0
+    return save_news_atomic(output, md, args.force)
 
 
 if __name__ == "__main__":
