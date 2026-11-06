@@ -24,6 +24,9 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
+      - name: JST の対象日を固定する
+        run: echo "NEWS_DATE=$(date +%Y%m%d)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
@@ -38,9 +41,9 @@ jobs:
           QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
         run: |
           if [ "$FORCE" = "true" ]; then
-            python3 scripts/news/fetch_ai_news.py --force
+            python3 scripts/news/fetch_ai_news.py --date "$NEWS_DATE" --force
           else
-            python3 scripts/news/fetch_ai_news.py
+            python3 scripts/news/fetch_ai_news.py --date "$NEWS_DATE"
           fi
 
       # 失敗してもピックアップなしの News を公開するため、ここでは止めず最後のステップで失敗にする
@@ -51,17 +54,17 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 scripts/news/curate_news.py
+        run: python3 scripts/news/curate_news.py --date "$NEWS_DATE"
 
       - name: source ごとの件数をサマリーに出す
         run: |
-          file="src/content/news/$(date +%Y%m%d)/index.md"
+          file="src/content/news/$NEWS_DATE/index.md"
           if [ ! -f "$file" ]; then
             echo "News のファイルがありません: $file" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           {
-            echo "## source ごとの件数（$(date +%Y-%m-%d)）"
+            echo "## source ごとの件数（${NEWS_DATE:0:4}-${NEWS_DATE:4:2}-${NEWS_DATE:6:2}）"
             echo ""
             echo "| source | 件数 |"
             echo "|---|---|"
@@ -81,9 +84,8 @@ jobs:
             echo "差分が無いため PR を作りません"
             exit 0
           fi
-          date=$(date +%Y%m%d)
-          branch="news/$date"
-          title="chore: $date の News を追加する"
+          branch="news/$NEWS_DATE"
+          title="chore: $NEWS_DATE の News を追加する"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"

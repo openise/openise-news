@@ -7,6 +7,7 @@ fetch_ai_news.py - はてなブックマーク・Hacker News・Reddit・GitHub T
     python3 fetch_ai_news.py
     python3 fetch_ai_news.py --limit 10 --period day
     python3 fetch_ai_news.py --output /path/to/output.md
+    python3 fetch_ai_news.py --date 20261106
 """
 
 import sys
@@ -336,9 +337,10 @@ def main() -> int:
                         help="Reddit の集計期間 (default: day)")
     parser.add_argument("--output", "-o", default="", help="出力ファイルパス (省略時は自動生成)")
     parser.add_argument("--force", action="store_true", help="既存の出力ファイルを上書きする")
+    parser.add_argument("--date", "-d", default="", help="対象日 YYYYMMDD (default: 今日 JST)")
     args = parser.parse_args()
 
-    now = datetime.now(JST)
+    now = datetime.strptime(args.date, "%Y%m%d").replace(tzinfo=JST) if args.date else datetime.now(JST)
     if args.output:
         output = args.output
     else:

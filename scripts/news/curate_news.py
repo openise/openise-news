@@ -446,7 +446,7 @@ def main() -> int:
     parser.add_argument("--date", "-d", default="", help="対象日 YYYYMMDD (default: 今日 JST)")
     args = parser.parse_args()
 
-    date = datetime.strptime(args.date, "%Y%m%d") if args.date else datetime.now(JST)
+    date = datetime.strptime(args.date, "%Y%m%d").replace(tzinfo=JST) if args.date else datetime.now(JST)
     api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
     account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
     if not api_token or not account_id:
