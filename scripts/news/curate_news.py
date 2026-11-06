@@ -290,27 +290,27 @@ def call_workers_ai(prompt: str, api_token: str, account_id: str) -> tuple[objec
         raise CurationError(f"Workers AI に接続できませんでした: {e}") from e
 
     try:
-        data = json.loads(raw)
+        response_payload = json.loads(raw)
     except json.JSONDecodeError as e:
         raise CurationError("Workers AI の応答が JSON ではありません") from e
-    if not isinstance(data, dict) or not data.get("success") or not isinstance(data.get("result"), dict):
-        errors = data.get("errors") if isinstance(data, dict) else None
+    if not isinstance(response_payload, dict) or not response_payload.get("success") or not isinstance(response_payload.get("result"), dict):
+        errors = response_payload.get("errors") if isinstance(response_payload, dict) else None
         raise CurationError(f"Workers AI がエラーを返しました: {errors}")
 
-    result = data["result"]
-    diagnostics = describe_finish(result)
+    model_result = response_payload["result"]
+    diagnostics = describe_finish(model_result)
     # モデルによって応答の形が異なる（ response 形式と OpenAI 互換の choices 形式）。
     # 思考の出力（ reasoning_content など）は使わずに捨て、本文だけを取り出す
-    if "response" in result:
-        output = result["response"]
+    if "response" in model_result:
+        output = model_result["response"]
     else:
         try:
-            output = result["choices"][0]["message"]["content"]
+            output = model_result["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as e:
             raise CurationError(f"Workers AI の応答にモデルの出力がありません（ {diagnostics} ）") from e
     if isinstance(output, str):
         output = _THINK_RE.sub("", output)
-    usage = result.get("usage")
+    usage = model_result.get("usage")
     return output, usage if isinstance(usage, dict) else {}, diagnostics
 
 
@@ -363,14 +363,14 @@ def sanitize_summary(summary: str) -> str:
 
 
 def render_pickup(picks: list[dict], candidates: list[dict]) -> str:
-    by_id = {c["id"]: c for c in candidates}
+    by_id = {candidate["id"]: candidate for candidate in candidates}
     lines = [PICKUP_HEADING, ""]
     for i, pick in enumerate(picks, 1):
-        c = by_id[pick["id"]]
-        source = f"{c['source']} — {c['score']}" if c["score"] else c["source"]
+        candidate = by_id[pick["id"]]
+        source = f"{candidate['source']} — {candidate['score']}" if candidate["score"] else candidate["source"]
         indent = " " * (len(str(i)) + 2)
         lines += [
-            f"{i}. **[{c['link_text']}]({c['url']})**  ",
+            f"{i}. **[{candidate['link_text']}]({candidate['url']})**  ",
             f"*ソース: {source}*",
             "",
             f"{indent}{sanitize_summary(pick['summary'])}",
