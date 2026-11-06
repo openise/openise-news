@@ -7,6 +7,7 @@ interface Props {
 
 const { title, href, headingLevel = 3 } = Astro.props;
 const cardId = `content-card-${crypto.randomUUID()}`;
+// Props が h2 〜 h6 に制限する値を、Astro が受け取るタグ名の型として扱う。
 const HeadingTag = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
 ---
 

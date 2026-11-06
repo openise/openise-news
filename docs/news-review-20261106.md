@@ -120,3 +120,17 @@ TypeScript の隣接テスト、Astro の `_*.test.ts`・`test/pages.test.ts`、
 | `scripts/news/fetch_reddit.py` | `print(...) @ 118, 239, 244, 245, 76` |
 | `scripts/news/fetch_zenn.py` | `print(...) @ 29, 34, 54` |
 | `workers/daily-news-trigger/index.ts` | `console.error(message); @ 34, 40, 9`、`console.log("Daily News の起動リクエストが受理されました（main、force=false）"); @ 44` |
+
+## M12: 型キャスト・非 null 表明の 7 箇所（issue #151）
+
+位置は原本の行番号。以下の判断を実装に反映した。
+
+| 原本の箇所 | 判断と理由 | 確認 |
+| --- | --- | --- |
+| `src/components/ContentCard.astro:10` の `HeadingTag` | 維持。Props が `2 \| 3 \| 4 \| 5 \| 6` に制限し、既定値も 3 のため、生成するタグは h2 〜 h6 に閉じる。Astro にタグ名の型を渡すための表明であり、その前提をコメントに記載 | 既定の h3 と、指定した h2 〜 h6 の描画を検証 |
+| `src/components/ContentCard.test.ts:48` のリンクの `!` | 削除。要素がなければ「ContentCard のリンクが見つかりません」で失敗させ、null のメソッド呼び出しによるエラーを避ける | 通常のリンク検証と、リンク欠損を一時的に再現した失敗メッセージを確認 |
+| `src/components/ContentCard.test.ts:51` の `aria-labelledby` の `!` | 削除。属性を取得して存在を確認してから ID を参照する。属性欠損と参照先のタイトル不一致を切り分ける | 通常のリンク名の検証と、属性欠損を一時的に再現した失敗メッセージを確認 |
+| `src/layouts/BaseLayout.test.ts:16` の `dataset` | 型表明を型注釈に変更。bootstrap が theme を書き込むための辞書を持つテスト用オブジェクトで、完全な DOM の代用ではない。空の辞書は `Record<string, string>` に代入できるためキャストは不要 | localStorage 利用不可時の継続、保存済み theme の優先を検証 |
+| `src/pages/_about.test.ts:13` の二重キャスト | 削除。Happy DOM の `Document` 型を import して使う。ブラウザー標準の `Document` と同一と見なす必要がなく、実際に返る型のまま検証できる | About のタイトル・見出し・取得元リンクの描画を検証 |
+| `src/pages/_index.test.ts:25` の二重キャスト | 削除。描画 helper の戻り値・テスト内の変数を Happy DOM の `Document` 型で統一する | 最新 News と空のコレクションの描画を検証 |
+| `workers/daily-news-trigger/index.test.ts:72` の `value!` | 維持。必須 secret を宣言する本番の Env は緩めず、実行時の undefined を意図的に渡すためにテストだけで使用する。非 null 表明は値を変換しないため、undefined がそのまま渡る。理由をコメントに記載 | undefined・空文字・空白の場合に API を呼ばず失敗すること、既存の秘密情報非出力を検証 |

@@ -69,6 +69,7 @@ describe("Daily News の定期起動", () => {
   });
 
   it.each([undefined, "", " "])("secret が未設定なら API を呼ばずに失敗する", async (value) => {
+    // Env の型を緩めず、実行時に secret が欠損する場合も再現する。
     await expect(worker.scheduled({}, { GITHUB_ACTIONS_TOKEN: value! })).rejects.toThrow("未設定");
     expect(fetchMock).not.toHaveBeenCalled();
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("未設定"));

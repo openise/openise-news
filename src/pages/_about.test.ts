@@ -1,5 +1,5 @@
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
-import { Window } from "happy-dom";
+import { Window, type Document } from "happy-dom";
 import { beforeAll, describe, expect, it } from "vitest";
 import About from "./about.astro";
 
@@ -10,7 +10,7 @@ describe("About page", () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(About);
     const window = new Window();
-    document = new window.DOMParser().parseFromString(html, "text/html") as unknown as Document;
+    document = new window.DOMParser().parseFromString(html, "text/html");
   });
 
   it("title と h1 を About にする", () => {
